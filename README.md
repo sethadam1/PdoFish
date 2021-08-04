@@ -1,6 +1,9 @@
 # PdoFish
 An Active Record style wrapper for PHP and PDO
 
+## Purpose
+[PHP Active Record](http://www.phpactiverecord.org) was last updated in 2010, with the latest nightly release being in 2013. Because PHPAR appears to be abandoned, PdoFish was designed as an extremely lightweight alternative, which recreates some of the same conventions. 
+
 ## Currently Supported Methods
 ```Model::raw()``` - execute raw SQL  
 ```Model::find_by_pk()``` - find a single row by primary key  
