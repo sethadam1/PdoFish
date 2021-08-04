@@ -2,7 +2,7 @@
 An Active Record style wrapper for PHP and PDO
 
 ## Currently Supported Methods
-```Model::raw()``` - execute raw SQL 
+```Model::raw()``` - execute raw SQL  
 ```Model::find_by_pk()``` - find a single row by primary key  
 ```Model::find()``` - find by a column called "id"  
 ```Model::all()``` - return all rows matching a query   
