@@ -4,8 +4,7 @@ An Active Record style wrapper for PHP and PDO
 ## Usage
 In general, you'd include Pdofish/pdofish.php and then your model file. 
 
-At that point, you would staticly call your class like so: 
-
+At that point, you would statically call your class like so: 
 
 
 //print an associative array  
