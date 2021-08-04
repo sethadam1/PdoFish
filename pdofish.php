@@ -196,7 +196,7 @@ class PdoFish
 	 */
 	public static function count($data)
 	{
-		return (int) static::process($sql, $args)->rowCount();
+		return (int) static::process($data)->rowCount();
 	}
 
 	/**
