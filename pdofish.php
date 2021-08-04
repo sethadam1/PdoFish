@@ -191,13 +191,12 @@ class PdoFish
 	 * Get number of records
 	 *
 	 * @param  string $sql       sql query
-	 * @param  array  $args      params
-	 * @param  object $fetchMode set return mode ie object or array
+	 * @param  array  $data      params
 	 * @return integer           returns number of records
 	 */
-	public static function count($sql, $args = [])
+	public static function count($data)
 	{
-		return static::run($sql, $args)->rowCount();
+		return (int) static::process($sql, $args)->rowCount();
 	}
 
 	/**
