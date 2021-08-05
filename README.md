@@ -23,36 +23,43 @@ An Active Record style wrapper for PHP and PDO
 ```Model::truncate()``` - truncate a table  
 
 ## Usage
-Begin by opening ```credentials.php``` and setting your database connection information. Add any models in the ```models/``` directory, being sure to use the example to extend the ```PdoFish``` class. Include Pdofish/PdoFish.php in your code and you should be ready to go. 
+- Begin by opening ```credentials.php``` and setting your database connection information.  
+- Upload the files to your web server.  
+- Add any models in the ```models/``` directory, being sure to use the example to extend the ```PdoFish``` class and set the ```$table``` variable and ```id```, if your primary key is not already called ```id```. 
+- Include Pdofish/PdoFish.php in your code and you should be ready to go. 
+
+```  
+require_once '/path/to/PdoFish/PdoFish.php';  //include_once() is also ok
+```
 
 At that point, you would statically call your class like so: 
 
-//print an associative array  
 ```
+//print an associative array  
 $x = PdoFishModelName::first(['conditions'=>['some_field=?', 'some_value']], PDO::FETCH_ASSOC);
 print_r($x); 
 ```  
 
-// print a row where primary key, in this case 'example_id' = 5  
 ```
+// print a row where primary key, in this case 'example_id' = 5
 $x = PdoFishModelName::find_by_pk(5);
 print_r($x);
 ```  
 
-// print a single row matching SQL query  
 ```
+// print a single row matching SQL query  
 $x = PdoFishModelName::find_by_sql('select * from random_table where random_field=12');
 print_r($x);
 ```  
 
-// print a row where id = 5  
 ```
+// print a row where id = 5   
 $x = PdoFishModelName::find(5);
 print_r($x); 
 ```
 
-// print 5 rows of data from this query   
 ```
+// print 5 rows of data from this query   
 $x = PdoFishPdoFishModelNameExample::all([
 	'select'=>'field1, field2, field3',
 	'from'=>'table t',
