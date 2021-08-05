@@ -4,6 +4,8 @@ An Active Record style wrapper for PHP and PDO
 ## Purpose
 [PHP Active Record](http://www.phpactiverecord.org) was last updated in 2010, with the latest nightly release being in 2013. Because PHPAR appears to be abandoned, PdoFish was designed as an extremely lightweight alternative, which recreates some of the same conventions. 
 
+The goal of this project was to recreate the static methods that work with table models. We do not intend to recreate several conventions within PHPAR, such as inserting via ```new Model($data);``` or record updates via ```$model->save();```.  We also are not aiming to recreate ```Model::table()->x()``` functions. 
+
 ## Currently Supported Methods
 ```Model::raw()``` - execute raw SQL  
 ```Model::find_by_pk()``` - find a single row by primary key  
