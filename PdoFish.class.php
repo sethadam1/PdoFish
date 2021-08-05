@@ -96,7 +96,9 @@ class PdoFish
 				$conditions[] = $c;
 			}
 		}
-
+		if($data['having']) {
+			$postsql .= "HAVING ".$data['having'];
+		}
 		if($data['order']) { $postsql .= " ORDER BY ".$data['order']; }
 		if($data['limit']) { $postsql .= " LIMIT ".abs(intval($data['limit'])); }
 		$stmt = static::$db->prepare($sql." ".$postsql);
@@ -296,7 +298,7 @@ class PdoFish
 	 * Delete all records records
 	 *
 	 * @param  string $table table name
-	 * for safety, yes, you must pass the name of the table 
+	 * for safety, yes, you must pass the name of the table
 	 */
 	public static function deleteAll($table)
 	{
@@ -331,7 +333,7 @@ class PdoFish
 	 * truncate table
 	 *
 	 * @param  string $table table name
-	 * for safety, yes, you must pass the name of the table 
+	 * for safety, yes, you must pass the name of the table
 	 */
 	public static function truncate($table)
 	{
@@ -346,3 +348,4 @@ class PdoFish
 		return(static::$instance);
 	}
 }
+
