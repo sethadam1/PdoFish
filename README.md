@@ -63,3 +63,14 @@ $x = PdoFishPdoFishModelNameExample::all([
 ], PDO::FETCH_OBJ);
 print_r($x);
 ```
+
+## Arguments supported
+The following arguments are supported in the PdoFish queries:  
+```select``` - columns to select  
+```from``` - table, or table and an alias _e.g. "prices p"_  
+```joins``` - a string of joins in SQL syntax, _e.g. LEFT JOIN table2 on prices.field=table2.field_   
+```conditions``` - an array of SQL, using ? placeholders, and arguments to be bound _e.g. ['year=? AND mood=?',2021,'happy']_   
+```group``` - group by, using a field name  
+```having``` - having, _e.g. 'count(x)>3'_  
+```order``` - order by, _e.g. 'id DESC'  
+```limit``` - a positive integer greater than 0  
