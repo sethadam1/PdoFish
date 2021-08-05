@@ -6,6 +6,8 @@ An Active Record style wrapper for PHP and PDO
 
 The goal of this project was to recreate the static methods that work with table models. We do not intend to recreate several conventions within PHPAR, such as inserting via ```new Model($data);``` or record updates via ```$model->save();```.  We also are not aiming to recreate ```Model::table()->x()``` functions. 
 
+There also isn't a current plan to recreate dynamic methods, e.g. ```Model::find_by_[colName]($colValue)```. 
+
 ## Currently Supported Methods
 ```Model::raw()``` - execute raw SQL  
 ```Model::find_by_pk()``` - find a single row by primary key  
