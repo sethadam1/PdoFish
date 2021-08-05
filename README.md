@@ -25,7 +25,7 @@ There also isn't a current plan to recreate dynamic methods, e.g. ```Model::find
 ```Model::deleteMany()``` - delete multiple rows matching criteria   
 
 #### The following methods must be called via the PdoFish class
-```PdoFish::truncate()``` - truncate a table, must be called via PdoFish class  
+```PdoFish::truncate($table)``` - truncate a table, must be called via PdoFish class  
 
 ## Usage
 - Begin by opening ```credentials.php``` and setting your database connection information.  
