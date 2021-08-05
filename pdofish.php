@@ -210,10 +210,9 @@ class PdoFish
 	/**
 	 * insert record
 	 *
-	 * @param  string $table table name
-	 * @param  array $data  array of columns and values
+	 * @param  array $data - an array of column names and values
 	 */
-	public static function insert($table, $data)
+	public static function insert($data)
 	{
 		//add columns into comma seperated string
 		$columns = implode(',', array_keys($data));
@@ -228,18 +227,17 @@ class PdoFish
 		//convert array into comma seperated string
 		$placeholders = implode(',', array_values($placeholders));
 
-		static::run("INSERT INTO $table ($columns) VALUES ($placeholders)", $values);
+		static::run("INSERT INTO ".static::get_table()." ($columns) VALUES ($placeholders)", $values);
 		return static::lastInsertId();
 	}
 
 	/**
 	 * update record
 	 *
-	 * @param  string $table table name
 	 * @param  array $data  array of columns and values
 	 * @param  array $where array of columns and values
 	 */
-	public static function update($table, $data, $where)
+	public static function update($data, $where)
 	{
 		//merge data and where together
 		$collection = array_merge($data, $where);
@@ -262,18 +260,17 @@ class PdoFish
 			$i++;
 		}
 
-		$stmt = static::run("UPDATE $table SET $fieldDetails WHERE $whereDetails", $values);
+		$stmt = static::run("UPDATE ".static::get_table()." SET $fieldDetails WHERE $whereDetails", $values);
 		return $stmt->rowCount();
 	}
 
 	/**
 	 * Delete records
 	 *
-	 * @param  string $table table name
 	 * @param  array $where array of columns and values
 	 * @param  integer $limit limit number of records
 	 */
-	public static function delete($table, $where, $limit = 1)
+	public static function delete($where, $limit = 1)
 	{
 		//collect the values from collection
 		$values = array_values($where);
@@ -299,6 +296,7 @@ class PdoFish
 	 * Delete all records records
 	 *
 	 * @param  string $table table name
+	 * for safety, yes, you must pass the name of the table 
 	 */
 	public static function deleteAll($table)
 	{
@@ -309,25 +307,23 @@ class PdoFish
 	/**
 	 * Delete record by id
 	 *
-	 * @param  string $table table name
 	 * @param  integer $id id of record
 	 */
-	public static function deleteById($table, $id)
+	public static function deleteById($id)
 	{
-		$stmt = static::run("DELETE FROM $table WHERE id = ?", [$id]);
+		$stmt = static::run("DELETE FROM ".static::get_table()." WHERE id = ?", [$id]);
 		return $stmt->rowCount();
 	}
 
 	/**
 	 * Delete record by ids
 	 *
-	 * @param  string $table table name
 	 * @param  string $column name of column
 	 * @param  string $ids ids of records
 	 */
-	public static function deleteByIds(string $table, string $column, string $ids)
+	public static function deleteByIds(string $column, string $ids)
 	{
-		$stmt = static::run("DELETE FROM $table WHERE $column IN ($ids)");
+		$stmt = static::run("DELETE FROM ".static::get_table()." WHERE $column IN ($ids)");
 		return $stmt->rowCount();
 	}
 
@@ -335,6 +331,7 @@ class PdoFish
 	 * truncate table
 	 *
 	 * @param  string $table table name
+	 * for safety, yes, you must pass the name of the table 
 	 */
 	public static function truncate($table)
 	{
