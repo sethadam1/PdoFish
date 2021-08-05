@@ -346,5 +346,3 @@ class PdoFish
 		return(static::$instance);
 	}
 }
-
-PdoFish::startup($pdo_options);
