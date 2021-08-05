@@ -98,7 +98,7 @@ class PdoFish
 		}
 
 		if($data['order']) { $postsql .= " ORDER BY ".$data['order']; }
-		if($data['limit']) { $postsql .= " LIMIT ".$data['limit']; }
+		if($data['limit']) { $postsql .= " LIMIT ".abs(intval($data['limit'])); }
 		$stmt = static::$db->prepare($sql." ".$postsql);
 		$stmt->execute($conditions);
 		return $stmt;
