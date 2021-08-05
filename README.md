@@ -23,6 +23,8 @@ There also isn't a current plan to recreate dynamic methods, e.g. ```Model::find
 ```Model::delete()```  - delete a row  
 ```Model::deleteById()``` - delete by a column called "id"   
 ```Model::deleteMany()``` - delete multiple rows matching criteria   
+
+#### The following methods must be called via the PdoFish class
 ```PdoFish::truncate()``` - truncate a table, must be called via PdoFish class  
 
 ## Usage
