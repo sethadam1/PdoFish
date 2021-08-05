@@ -11,4 +11,3 @@ $PdoFish_options = [
 	'port' => '3306'                // optional, defaults to 3306
 ];
 
-PdoFish::startup($PdoFish_options);
