@@ -99,6 +99,9 @@ class PdoFish
 		if($data['having']) {
 			$postsql .= "HAVING ".$data['having'];
 		}
+		if($data['group']) {
+			$postsql .= "GROUP BY ".$data['group'];
+		}
 		if($data['order']) { $postsql .= " ORDER BY ".$data['order']; }
 		if($data['limit']) { $postsql .= " LIMIT ".abs(intval($data['limit'])); }
 		$stmt = static::$db->prepare($sql." ".$postsql);
