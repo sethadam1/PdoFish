@@ -1,7 +1,7 @@
 <?php
 
 // still in development
-class PdoFishExample extends PdoFish {
+class PdoFishExampleModel extends PdoFish {
 
 	public static $table 		= 'my_table';
 	public static $primary_key	= 'example_id';
