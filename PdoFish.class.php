@@ -298,18 +298,6 @@ class PdoFish
 	}
 
 	/**
-	 * Delete all records records
-	 *
-	 * @param  string $table table name
-	 * for safety, yes, you must pass the name of the table
-	 */
-	public static function deleteAll($table)
-	{
-		$stmt = static::run("DELETE FROM $table");
-		return $stmt->rowCount();
-	}
-
-	/**
 	 * Delete record by id
 	 *
 	 * @param  integer $id id of record
@@ -326,7 +314,7 @@ class PdoFish
 	 * @param  string $column name of column
 	 * @param  string $ids ids of records
 	 */
-	public static function deleteByIds(string $column, string $ids)
+	public static function deleteMany(string $column, string $ids)
 	{
 		$stmt = static::run("DELETE FROM ".static::get_table()." WHERE $column IN ($ids)");
 		return $stmt->rowCount();
@@ -336,10 +324,11 @@ class PdoFish
 	 * truncate table
 	 *
 	 * @param  string $table table name
-	 * for safety, yes, you must pass the name of the table
+	 * must be called via PdoFish class
 	 */
 	public static function truncate($table)
 	{
+		if('PdoFish'!=get_called_class()) { return false; }
 		$stmt = static::run("TRUNCATE TABLE $table");
 		return $stmt->rowCount();
 	}
