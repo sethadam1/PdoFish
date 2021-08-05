@@ -21,9 +21,8 @@ There also isn't a current plan to recreate dynamic methods, e.g. ```Model::find
 ```Model::insert()``` - insert data  
 ```Model::update()``` - update field(s)  
 ```Model::delete()```  - delete a row  
-```Model::deleteAll()``` - delete multiple rows  
 ```Model::deleteById()``` - delete by a column called "id"   
-```Model::deleteByIds()``` - delete multiple rows matching criteria   
+```Model::deleteMany()``` - delete multiple rows matching criteria   
 ```Model::truncate()``` - truncate a table  
 
 ## Usage
