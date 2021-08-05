@@ -89,7 +89,7 @@ class PdoFish
 		$sql = "SELECT ".$select." FROM ".$data['from'];
 
 		if(isset($data['joins'])) { $sql .= " ".$data['joins']; }
-		if(is_array($data['conditions'])) {
+		if(!empty($data['conditions'])) {
 			$sql .= " WHERE ".$data['conditions'][0];
 			foreach($data['conditions'] as $k => $c) {
 				if(0 == $k) { continue; }
@@ -104,8 +104,14 @@ class PdoFish
 		}
 		if($data['order']) { $postsql .= " ORDER BY ".$data['order']; }
 		if($data['limit']) { $postsql .= " LIMIT ".abs(intval($data['limit'])); }
-		$stmt = static::$db->prepare($sql." ".$postsql);
-		$stmt->execute($conditions);
+		// uncomment next line for SQL debugger
+		// error_log($sql." ".$postsql);
+		if(!empty($conditions)) {
+			$stmt = static::$db->prepare($sql." ".$postsql);
+			$stmt->execute($conditions);
+		} else {
+			$stmt = static::$db->query($sql." ".$postsql);
+		}
 		return $stmt;
 	}
 
