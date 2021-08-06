@@ -23,6 +23,7 @@ We do not intend to recreate several conventions within PHPAR or all of the Acti
 ```Model::delete()```  - delete a row  
 ```Model::deleteById()``` - delete by a column called "id"   
 ```Model::deleteMany()``` - delete multiple rows matching criteria   
+```Model::set_fetch_mode()``` - set the PDO fetch mode, e.g. PDO::FETCH_OBJ or PDO::FETCH_ASSOC  
 
 #### Dynamic function names
 ```Model::find_by_[field]``` - find a single row by a specific column value  
@@ -41,11 +42,18 @@ We do not intend to recreate several conventions within PHPAR or all of the Acti
 require_once '/path/to/PdoFish/PdoFish.php';  //include_once() is also ok
 ```
 
-At that point, you would statically call your class like so: 
+At that point, you would statically call your class like in these examples: 
 
 ```
-//print an associative array  
+//print an associative array 
 $x = PdoFishModelName::first(['conditions'=>['some_field=?', 'some_value']], PDO::FETCH_ASSOC);
+print_r($x); 
+```  
+
+```
+//also prints an associative array   
+PdoFishModelName::set_fetch_modePDO::FETCH_ASSOC); 
+$x = PdoFishModelName::first(['conditions'=>['some_field=?', 'some_value']]);
 print_r($x); 
 ```  
 
