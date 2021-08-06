@@ -61,7 +61,7 @@ class PdoFish
 	 */
 	public static function set_fetch_mode($mode)
 	{
-		if(!in_array($mode, [PDO::FETCH_ASSOC, PDO::FETCH_OBJ, PDO::FETCH_BOTH, PDO::FETCH_INTO, PDO::FETCH_NUM, PDO::FETCH_NAMED, PDO::FETCH_LAZY])) {
+		if(!in_array($mode, [PDO::FETCH_ASSOC, PDO::FETCH_OBJ, PDO::FETCH_BOTH, PDO::FETCH_NUM, PDO::FETCH_NAMED, PDO::FETCH_LAZY])) {
 			$mode = PDO::FETCH_OBJ;
 		}
 		static::$fetch_mode = $mode;
