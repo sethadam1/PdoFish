@@ -15,6 +15,8 @@ class PdoFish
 	static $tbl = null;
 	// primary key, defaults to 'id'
 	static $pk = 'id';
+	// default return type, which defaults to object
+	static $fetch_mode = PDO::FETCH_OBJ;
 
 	/**
 	 * Connection details
@@ -50,6 +52,30 @@ class PdoFish
 	protected static function get_table()
 	{
 		return static::$table ?? static::$tbl;
+	}
+
+	/**
+	 * Set the PDO return type
+	 *
+	 * @return void
+	 */
+	public static function set_fetch_mode($mode)
+	{
+		if(!in_array($mode, [PDO::FETCH_ASSOC, PDO::FETCH_OBJ, PDO::FETCH_BOTH, PDO::FETCH_INTO, PDO::FETCH_NUM, PDO::FETCH_NAMED, PDO::FETCH_LAZY])) {
+			$mode = PDO::FETCH_OBJ;
+		}
+		static::$fetch_mode = $mode;
+		return;
+	}
+
+	/**
+	 * Gets the current PDO return type
+	 *
+	 * @return current table, defaults to null
+	 */
+	public static function get_fetch_mode()
+	{
+		return static::$fetch_mode;
 	}
 
 	/**
@@ -115,41 +141,41 @@ class PdoFish
 		return $stmt;
 	}
 
-	public static function all($data, $return_type=PDO::FETCH_OBJ)
+	public static function all($data, $fetch_mode=PDO::FETCH_OBJ)
 	{
-		if(!in_array($return_type, [PDO::FETCH_ASSOC, PDO::FETCH_OBJ])) {
-			$return_type = PDO::FETCH_OBJ;
+		if(!in_array($fetch_mode, [PDO::FETCH_ASSOC, PDO::FETCH_OBJ])) {
+			$fetch_mode = static::$fetch_mode;
 		}
 		$stmt = static::process($data);
-		return $stmt->fetchAll($return_type);
+		return $stmt->fetchAll($fetch_mode);
 	}
 
-	public static function first($data, $return_type=PDO::FETCH_OBJ)
+	public static function first($data, $fetch_mode=PDO::FETCH_OBJ)
 	{
-		if(!in_array($return_type, [PDO::FETCH_ASSOC, PDO::FETCH_OBJ])) {
-			$return_type = PDO::FETCH_OBJ;
+		if(!in_array($fetch_mode, [PDO::FETCH_ASSOC, PDO::FETCH_OBJ])) {
+			$fetch_mode = static::$fetch_mode;
 		}
 		$data['limit'] = 1;
 		$stmt = static::process($data);
-		return $stmt->fetch($return_type);
+		return $stmt->fetch($fetch_mode);
 	}
 
-	public static function find_by_sql($sql, $args=NULL, $return_type=PDO::FETCH_OBJ)
+	public static function find_by_sql($sql, $args=NULL, $fetch_mode=PDO::FETCH_OBJ)
 	{
-		if(!in_array($return_type, [PDO::FETCH_ASSOC, PDO::FETCH_OBJ])) {
-			$return_type = PDO::FETCH_OBJ;
+		if(!in_array($fetch_mode, [PDO::FETCH_ASSOC, PDO::FETCH_OBJ])) {
+			$fetch_mode = static::$fetch_mode;
 		}
 		$stmt = static::run($sql,$args);
-		return $stmt->fetch($return_type);
+		return $stmt->fetch($fetch_mode);
 	}
 
-	public static function find_all_by_sql($sql, $args=NULL, $return_type=PDO::FETCH_OBJ)
+	public static function find_all_by_sql($sql, $args=NULL, $fetch_mode=PDO::FETCH_OBJ)
 	{
-		if(!in_array($return_type, [PDO::FETCH_ASSOC, PDO::FETCH_OBJ])) {
-			$return_type = PDO::FETCH_OBJ;
+		if(!in_array($fetch_mode, [PDO::FETCH_ASSOC, PDO::FETCH_OBJ])) {
+			$fetch_mode = static::$fetch_mode;
 		}
 		$stmt = static::run($sql,$args);
-		return $stmt->fetchAll($return_type);
+		return $stmt->fetchAll($fetch_mode);
 	}
 
 	/**
@@ -332,11 +358,39 @@ class PdoFish
 	 * @param  string $table table name
 	 * must be called via PdoFish class
 	 */
-	public static function truncate($table)
+	final public static function truncate($table)
 	{
 		if('PdoFish'!=get_called_class()) { return false; }
-		$stmt = static::run("TRUNCATE TABLE $table");
+		$stmt = static::run("TRUNCATE TABLE ".$table);
 		return $stmt->rowCount();
+	}
+
+	/**
+	 * dynamic callable
+	 *
+	 * @param  string $table table name
+	 * must be called via PdoFish class
+	 */
+
+	public static function __callStatic ( string $name , array $args )
+	{
+		$fetch_mode = static::get_fetch_mode();
+		# one record
+		if (preg_match('/^find_by_(.+)/', $name, $matches)) {
+			$var_name = $matches[1];
+			$sql = "SELECT * FROM ".static::get_table()." WHERE ".$var_name."=?";
+			$stmt = static::$db->prepare($sql);
+			$stmt->execute([ $args[0] ]);
+			return $stmt->fetch($fetch_mode);
+		}
+		# multiple records
+		if (preg_match('/^find_all_by_(.+)/', $name, $matches)) {
+			$var_name = $matches[1];
+			$sql = "SELECT * FROM ".static::get_table()." WHERE ".$var_name."=?";
+			$stmt = static::$db->prepare($sql);
+			$stmt->execute([ $args[0] ]);
+			return $stmt->fetchAll($fetch_mode);
+		}
 	}
 
 	static function startup($pdo_options) {
