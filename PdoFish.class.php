@@ -51,6 +51,7 @@ class PdoFish
 	 */
 	protected static function get_table()
 	{
+		if(isset(static::$table_name)) { return static::$table_name; }
 		return static::$table ?? static::$tbl;
 	}
 
@@ -131,7 +132,7 @@ class PdoFish
 		if($data['order']) { $postsql .= " ORDER BY ".$data['order']; }
 		if($data['limit']) { $postsql .= " LIMIT ".abs(intval($data['limit'])); }
 		// uncomment next line for SQL debugger
-		// error_log($sql." ".$postsql);
+		error_log($sql." ".$postsql);
 		if(!empty($conditions)) {
 			$stmt = static::$db->prepare($sql." ".$postsql);
 			$stmt->execute($conditions);
@@ -141,7 +142,7 @@ class PdoFish
 		return $stmt;
 	}
 
-	public static function all($data, $fetch_mode=PDO::FETCH_OBJ)
+	public static function all($data=[], $fetch_mode=PDO::FETCH_OBJ)
 	{
 		if(!in_array($fetch_mode, [PDO::FETCH_ASSOC, PDO::FETCH_OBJ])) {
 			$fetch_mode = static::$fetch_mode;
