@@ -132,7 +132,7 @@ class PdoFish
 		if($data['order']) { $postsql .= " ORDER BY ".$data['order']; }
 		if($data['limit']) { $postsql .= " LIMIT ".abs(intval($data['limit'])); }
 		// uncomment next line for SQL debugger
-		error_log($sql." ".$postsql);
+		// error_log($sql." ".$postsql);
 		if(!empty($conditions)) {
 			$stmt = static::$db->prepare($sql." ".$postsql);
 			$stmt->execute($conditions);
