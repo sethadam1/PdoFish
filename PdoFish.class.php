@@ -18,12 +18,28 @@ class PdoFish
 	// default return type, which defaults to object
 	static $fetch_mode = PDO::FETCH_OBJ;
 
+
+
+	/**
+	 * Setup
+	 *
+	 * @param array $args
+	 */
+	public function __construct($args=null)
+	{
+		if(is_array($args)) {
+			foreach($args as $k=>$v) {
+				$this->$k = $v;
+			}
+		}
+	}
+
 	/**
 	 * Connection details
 	 *
 	 * @param array $args
 	 */
-	public function __construct($args)
+	public function initialize($args=null)
 	{
 		if (!isset($args['database'])) {
 			throw new Exception('PdoFish requires database name');
@@ -37,8 +53,8 @@ class PdoFish
 		$host     = $args['host'] ?? 'localhost';	// default: localhost
 		$charset  = $args['charset'] ?? 'utf8';		// default: utf-8
 		$password = $args['password'] ?? '';
-		$database = $args['database'];
-		$username = $args['username'];
+		$database =$args['database'];
+		$username =$args['username'];
 		$port     = isset($args['port']) ? 'port=' . $args['port'] . ';' : '';
 		self::$db = new PDO("$type:host=$host;$port"."dbname=$database;charset=$charset", $username, $password);
 		self::$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -246,6 +262,16 @@ class PdoFish
 	}
 
 	/**
+	 * create record // an alias
+	 *
+	 * @param  array $data - an array of column names and values
+	 */
+	public static function create($data)
+	{
+		return static::insert($data);
+	}
+
+	/**
 	 * insert record
 	 *
 	 * @param  array $data - an array of column names and values
@@ -297,7 +323,6 @@ class PdoFish
 			$whereDetails .= $i == 0 ? "$key = ?" : " AND $key = ?";
 			$i++;
 		}
-
 		$stmt = static::run("UPDATE ".static::get_table()." SET $fieldDetails WHERE $whereDetails", $values);
 		return $stmt->rowCount();
 	}
@@ -325,8 +350,7 @@ class PdoFish
 		if (is_numeric($limit)) {
 			$limit = "LIMIT $limit";
 		}
-
-		$stmt = static::run("DELETE FROM $table WHERE $whereDetails $limit", $values);
+		$stmt = static::run("DELETE FROM  ".static::get_table()." WHERE $whereDetails $limit", $values);
 		return $stmt->rowCount();
 	}
 
@@ -367,6 +391,19 @@ class PdoFish
 	}
 
 	/**
+	 * create a new record, active record style
+	 *
+	 * @param  array $data - an array of column names and values
+	 */
+	public function save($data=null)
+	{
+		if(is_null($data)) { $data = (array) $this; }
+		if(!is_array($data)) { return; }
+		print_r_pre($data);
+		return static::insert($data);
+	}
+
+	/**
 	 * dynamic callable
 	 *
 	 * @param  string $table table name
@@ -396,7 +433,8 @@ class PdoFish
 
 	static function startup($pdo_options) {
 		if (static::$instance == null) {
-			static::$instance = new PdoFish($pdo_options);
+			static::$instance = new PdoFish();
+			static::$instance->initialize($pdo_options);
 		}
 		return(static::$instance);
 	}
