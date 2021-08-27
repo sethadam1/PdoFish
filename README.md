@@ -64,6 +64,8 @@ $x->col312345;
 $x->save();  
 ```
 
+Unlike PHP Active Record, the ```->save()``` method cannot be used to update existing objects. 
+
 #### Read
 
 ```
@@ -105,7 +107,7 @@ print_r($x);
 
 ```
 // print 5 rows of data from this query   
-$x = PdoFishModelNameExample::all([
+$x = ModelName::all([
 	'select'=>'field1, field2, field3',
 	'from'=>'table t',
 	'joins'=>'LEFT JOIN table2 t2 ON t.field1=t2.other_field',
@@ -123,8 +125,16 @@ ModeName::update(['firstname'=>'Boris'], ['id'=>5]);
 
 // updates columns "firstname" to "June", "lastname" to "Basoon" where id = 5
 ModeName::update(['firstname'=>'June', 'lastname'=>'Basoon'], ['id'=>5]); 
+```   
+  
+Unlike PHP Active Record, you cannot use the save() method on an existing model object like you can in Active Record. 
+```
+// this will not work   
+$y = ModelName::find(3); //find a model with primary key=3  
+$y->thevalue = "Updated field!";  
+$->save(); // this does not work   
 ```  
-
+  
 #### Delete  
 ```  
 // delete rows where column "firstname" is equal to "Boris"  
@@ -136,10 +146,14 @@ ModeName::deleteById(['firstname'=>'Boris']);
 // delete rows where column "user_id" is equal to 1, 2, or 3  
 ModeName::deleteMany(['user_id', '1,2,3']);   
    
-//this will truncate an entire table. You MUST call this via the PdoFish class, and not a child class  
+// this will truncate an entire table. You MUST call this via the PdoFish class, and not a child class  
 PdoFish::truncate('tableName');  
-```  
 
+// you cannot use table()->method() functions   
+$y = ModelName::find(3); //find a model with primary key=3  
+$y->delete(); // this will not work   
+```    
+  
 ## Arguments supported
 The following arguments are supported in the PdoFish queries:  
 ```select``` - columns to select  
