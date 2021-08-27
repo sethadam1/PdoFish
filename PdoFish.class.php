@@ -18,8 +18,6 @@ class PdoFish
 	// default return type, which defaults to object
 	static $fetch_mode = PDO::FETCH_OBJ;
 
-
-
 	/**
 	 * Setup
 	 *
@@ -399,7 +397,6 @@ class PdoFish
 	{
 		if(is_null($data)) { $data = (array) $this; }
 		if(!is_array($data)) { return; }
-		print_r_pre($data);
 		return static::insert($data);
 	}
 
