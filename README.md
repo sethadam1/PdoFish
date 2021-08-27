@@ -120,6 +120,9 @@ print_r($x);
 ```  
 // updates column "firstname" to "Boris" where id = 5
 ModeName::update(['firstname'=>'Boris'], ['id'=>5]); 
+
+// updates columns "firstname" to "June", "lastname" to "Basoon" where id = 5
+ModeName::update(['firstname'=>'June', 'lastname'=>'Basoon'], ['id'=>5]); 
 ```  
 
 #### Delete  
