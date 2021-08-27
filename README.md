@@ -6,7 +6,7 @@ An Active Record style wrapper for PHP and PDO
 
 The goal of this project was to recreate the _static_ methods that work with table models.  This project is not for everyone. Sloppy programming can break these functions. However, if you're already using PHPAR or wish to use an Active Record style DB interface in PHP, this may suit. 
 
-We do not intend to recreate several conventions within PHPAR or all of the ActiveRecord conventions, such as inserting via ```new Model($data);``` or record updates via ```$model->save();```.  We also are not aiming to recreate ```Model::table()->x()``` functions.  
+We do not intend to recreate ```Model::table()->x()``` functions.  
 
 ## Currently Supported Methods
 ```Model::raw()``` - execute raw SQL  
@@ -18,7 +18,7 @@ We do not intend to recreate several conventions within PHPAR or all of the Acti
 ```Model::find_all_by_sql()``` - returns all rows matching a query  
 ```Model::lastInsertId()``` - returns last insert id  
 ```Model::count()``` - return matching row count  
-```Model::insert()``` - insert data  
+```Model::save()``` - insert/create/save data  
 ```Model::update()``` - update field(s)  
 ```Model::delete()```  - delete a row  
 ```Model::deleteById()``` - delete by a column called "id"   
@@ -42,7 +42,29 @@ We do not intend to recreate several conventions within PHPAR or all of the Acti
 require_once '/path/to/PdoFish/PdoFish.php';  //include_once() is also ok
 ```
 
-At that point, you would statically call your class like in these examples: 
+## Basic CRUD
+To insert data into a table, you can use Active Record style syntax. Both of these are valid: 
+
+#### Create 
+```
+$data = [
+	'id' => 1,  
+	'col1' => '2020-08-27 09:58:01',  
+	'col2'=> 'a string',  
+	'col3' => 12345  
+];  
+$y = new ModelName($data);  
+$y->save();  
+  
+$x = new ModelName();  
+$x->id = 1;  
+$x->col1 = '2020-08-27 09:58:01';  
+$x->col2 = 'a string';  
+$x->col312345;  
+$x->save();  
+```
+
+#### Read
 
 ```
 //print an associative array 
@@ -87,6 +109,16 @@ $x = PdoFishPdoFishModelNameExample::all([
 ], PDO::FETCH_OBJ);
 print_r($x);
 ```
+
+#### Update  
+```  
+Documentation coming soon  
+```  
+
+#### Delete  
+```  
+Documentation coming soon  
+```  
 
 ## Arguments supported
 The following arguments are supported in the PdoFish queries:  
