@@ -67,39 +67,45 @@ $x->save();
 #### Read
 
 ```
+//print an object
+$x = ModelName::first(['conditions'=>['some_field=?', 'some_value']]);
+print_r($x); 
+```  
+
+```
 //print an associative array 
-$x = PdoFishModelName::first(['conditions'=>['some_field=?', 'some_value']], PDO::FETCH_ASSOC);
+$x = ModelName::first(['conditions'=>['some_field=?', 'some_value']], PDO::FETCH_ASSOC);
 print_r($x); 
 ```  
 
 ```
 //also prints an associative array   
-PdoFishModelName::set_fetch_modePDO::FETCH_ASSOC); 
-$x = PdoFishModelName::first(['conditions'=>['some_field=?', 'some_value']]);
+ModelName::set_fetch_modePDO::FETCH_ASSOC); 
+$x = ModelName::first(['conditions'=>['some_field=?', 'some_value']]);
 print_r($x); 
 ```  
 
 ```
 // print a row where primary key, in this case 'example_id' = 5
-$x = PdoFishModelName::find_by_pk(5);
+$x = ModelName::find_by_pk(5);
 print_r($x);
 ```  
 
 ```
 // print a single row matching SQL query  
-$x = PdoFishModelName::find_by_sql('select * from random_table where random_field=12');
+$x = ModelName::find_by_sql('select * from random_table where random_field=12');
 print_r($x);
 ```  
 
 ```
 // print a row where id = 5   
-$x = PdoFishModelName::find(5);
+$x = ModelName::find(5);
 print_r($x); 
 ```
 
 ```
 // print 5 rows of data from this query   
-$x = PdoFishPdoFishModelNameExample::all([
+$x = PdoFishModelNameExample::all([
 	'select'=>'field1, field2, field3',
 	'from'=>'table t',
 	'joins'=>'LEFT JOIN table2 t2 ON t.field1=t2.other_field',
@@ -112,12 +118,23 @@ print_r($x);
 
 #### Update  
 ```  
-Documentation coming soon  
+// updates column "firstname" to "Boris" where id = 5
+ModeName::update(['firstname'=>'Boris'], ['id'=>5]); 
 ```  
 
 #### Delete  
 ```  
-Documentation coming soon  
+// delete rows where column "firstname" is equal to "Boris"  
+ModeName::delete(['firstname'=>'Boris']);   
+  
+// delete row where column "id" is equal to "5"  
+ModeName::deleteById(['firstname'=>'Boris']);   
+  
+// delete rows where column "user_id" is equal to 1, 2, or 3  
+ModeName::deleteMany(['user_id', '1,2,3']);   
+   
+//this will truncate an entire table. You MUST call this via the PdoFish class, and not a child class  
+PdoFish::truncate('tableName');  
 ```  
 
 ## Arguments supported
