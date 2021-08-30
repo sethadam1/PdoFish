@@ -82,7 +82,7 @@ print_r($x);
 
 ```
 //also prints an associative array   
-ModelName::set_fetch_modePDO::FETCH_ASSOC); 
+ModelName::set_fetch_mode(PDO::FETCH_ASSOC); 
 $x = ModelName::first(['conditions'=>['some_field=?', 'some_value']]);
 print_r($x); 
 ```  
