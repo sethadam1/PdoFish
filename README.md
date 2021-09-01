@@ -21,7 +21,7 @@ We do not intend to recreate ```Model::table()->x()``` functions.
 ```Model::save()``` - insert/create/save data  
 ```Model::update()``` - update field(s)  
 ```Model::delete()```  - delete a row  
-```Model::deleteById()``` - delete by a column called "id"   
+```Model::delete_by_id()``` - delete by a column called "id"   
 ```Model::deleteMany()``` - delete multiple rows matching criteria   
 ```Model::set_fetch_mode()``` - set the PDO fetch mode, e.g. PDO::FETCH_OBJ or PDO::FETCH_ASSOC  
 
@@ -64,7 +64,7 @@ $x->col312345;
 $x->save();  
 ```
 
-Unlike PHP Active Record, the ```->save()``` method cannot be used to update existing objects. 
+Unlike PHP Active Record, the ```->save()``` method can only be used to update existing objects when they have a property called id, e.g. ```$x->id```. 
 
 #### Read
 
@@ -127,12 +127,28 @@ ModeName::update(['firstname'=>'Boris'], ['id'=>5]);
 ModeName::update(['firstname'=>'June', 'lastname'=>'Basoon'], ['id'=>5]); 
 ```   
   
-Unlike PHP Active Record, you cannot use the save() method on an existing model object like you can in Active Record. 
+You can use the save() method on an existing model object, just like you can in Active Record, provided it has a property called "id" that matches a unique column in the table.  
 ```
-// this will not work   
+// this will work if ModelName has a pk of "id" 
 $y = ModelName::find(3); //find a model with primary key=3  
 $y->thevalue = "Updated field!";  
-$->save(); // this does not work   
+$y->save(); // this will work   
+
+// this will NOT work  
+$y = ModelName::find(3); //find a model with primary key=3  
+var_dump($y); 
+/*
+object(ModelName)#157 (3) {
+  ["user_id"]=>
+  string(1) "1"
+  ["thekey"]=>
+  string(2) "hello"
+  ["thevalue"]=>
+  string(7) "world"
+}
+*/
+$y->thevalue = "Updated field!";  
+$y->save(); // this will NOT work, since $y does not have a property "id"   
 ```  
   
 #### Delete  
@@ -141,7 +157,7 @@ $->save(); // this does not work
 ModeName::delete(['firstname'=>'Boris']);   
   
 // delete row where column "id" is equal to "5"  
-ModeName::deleteById(['firstname'=>'Boris']);   
+ModeName::delete_by_id(['firstname'=>'Boris']);   
   
 // delete rows where column "user_id" is equal to 1, 2, or 3  
 ModeName::deleteMany(['user_id', '1,2,3']);   
