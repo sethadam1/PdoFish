@@ -15,6 +15,8 @@ class PdoFish
 	static $tbl = null;
 	// primary key, defaults to 'id'
 	static $pk = 'id';
+	// primary key, defaults to 'id'
+	static private $input_vars = [];
 	// default return type, which defaults to object
 	static $fetch_mode = PDO::FETCH_OBJ;
 
@@ -234,9 +236,14 @@ class PdoFish
 	 * @param  object $fetchMode 	set return mode, e.g. PDO::FETCH_OBJ or PDO::FETCH_ASSOC
 	 * @return object/array			returns single record
 	 */
-	public static function find($id, $fetchMode = PDO::FETCH_OBJ)
+	public static function find($id, $fetchMode = NULL)
 	{
-		return static::run("SELECT * FROM ".static::get_table()." WHERE id = ?", [$id])->fetch($fetchMode);
+		if(!is_null($fetchMode)) { self::set_fetch_mode($fetchMode); }
+		$fetch = static::$fetch_mode;
+		if($fetch != PDO::FETCH_OBJ) {
+			return static::run("SELECT * FROM ".static::get_table()." WHERE id = ?", [$id])->fetch($fetch);
+		}
+		return static::run("SELECT * FROM ".static::get_table()." WHERE id = ?", [$id])->fetchObject(get_called_class());
 	}
 
 	/**
@@ -291,6 +298,30 @@ class PdoFish
 
 		static::run("INSERT INTO ".static::get_table()." ($columns) VALUES ($placeholders)", $values);
 		return static::lastInsertId();
+	}
+
+
+	/**
+	 * update record
+	 *
+	 * @param  array $data  array of columns and values
+	 * @param  array $where array of columns and values
+	 */
+	public static function update_by_id($data, $id)
+	{
+		// collect the values from data
+		$values = array_values($data);
+		$values[] = $id;
+
+		// fields to update
+		$fieldDetails = null;
+		foreach ($data as $key => $value) {
+			$fieldDetails .= $key." = ?,";
+		}
+		$fieldDetails = rtrim($fieldDetails, ',');
+
+		$stmt = static::run("UPDATE ".static::get_table()." SET ".$fieldDetails." WHERE id=?", $values);
+		return $stmt->rowCount();
 	}
 
 	/**
@@ -357,10 +388,15 @@ class PdoFish
 	 *
 	 * @param  integer $id id of record
 	 */
-	public static function deleteById($id)
+	public static function delete_by_id($id)
 	{
 		$stmt = static::run("DELETE FROM ".static::get_table()." WHERE id = ?", [$id]);
 		return $stmt->rowCount();
+	}
+
+	public static function deleteById($id) // camel-case alias of delete_by_id
+	{
+		return self::delete_by_id($id);
 	}
 
 	/**
@@ -393,11 +429,19 @@ class PdoFish
 	 *
 	 * @param  array $data - an array of column names and values
 	 */
-	public function save($data=null)
+	public function save($debug=NULL)
 	{
-		if(is_null($data)) { $data = (array) $this; }
-		if(!is_array($data)) { return; }
-		return static::insert($data);
+		if(1 == $debug) { var_dump($this); return; }
+		if($this->id) {
+			$data = (array) $this;
+			unset($data['id']);
+			self::update_by_id($data,$this->id);
+			return $this;
+		}
+		$data = (array) $this;
+		if(!is_array($data)) { return false; }
+		static::insert($data);
+		return (object) $data;
 	}
 
 	/**
