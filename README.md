@@ -128,25 +128,19 @@ ModeName::update(['firstname'=>'June', 'lastname'=>'Basoon'], ['id'=>5]);
 ```   
   
 You can use the save() method on an existing model object, just like you can in Active Record, provided it has a property called "id" that matches a unique column in the table.  
+
+Consider a table with three columns, "id", "colA", and "colB." 
 ```
 // this will work if ModelName has a pk of "id" 
 $y = ModelName::find(3); //find a model with primary key=3  
 $y->thevalue = "Updated field!";  
 $y->save(); // this will work   
+```
 
+Now consider a table with three columns, "row_id", "colA", and "colB."   
+``` 
 // this will NOT work  
 $y = ModelName::find(3); //find a model with primary key=3  
-var_dump($y); 
-/*
-object(ModelName)#157 (3) {
-  ["user_id"]=>
-  string(1) "1"
-  ["thekey"]=>
-  string(2) "hello"
-  ["thevalue"]=>
-  string(7) "world"
-}
-*/
 $y->thevalue = "Updated field!";  
 $y->save(); // this will NOT work, since $y does not have a property "id"   
 ```  
