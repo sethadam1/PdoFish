@@ -2,11 +2,9 @@
 An Active Record style wrapper for PHP and PDO
 
 ## Purpose
-[PHP Active Record](http://www.phpactiverecord.org) was last updated in 2010, with the latest nightly release being in 2013. Because PHPAR appears to be abandoned, PdoFish was designed as an extremely lightweight alternative of a subset of the ActiveRecord syntax. The goal was to create a drop-in replacement of _some_ of the same conventions as PHPAR. 
+The last stable release of [PHP Active Record](http://www.phpactiverecord.org) was in 2010, with the latest nightly release being in 2013. Because PHPAR appears to be abandoned, but is still in use in many projects, PdoFish was designed as an extremely lightweight alternative of a subset of the ActiveRecord syntax. The goal was to create a drop-in replacement of _some, but not all_ of the same conventions as PHPAR. 
 
-The goal of this project was to recreate the _static_ methods that work with table models.  This project is not for everyone. Sloppy programming can break these functions. However, if you're already using PHPAR or wish to use an Active Record style DB interface in PHP, this may suit. 
-
-We do not intend to recreate ```Model::table()->x()``` functions.  
+The goal of this project was to recreate the _static_ methods that work with table models.  This project is not for everyone. Sloppy programming can break these functions. However, if you're already using PHPAR or wish to use an Active Record style DB interface in PHP, this may suit. To be clear, many of the conventions in PHPAR are not implemented in PdoFish, however, the aim of this project was simple, readable code that is as thin a layer on top of PDO as possible. 
 
 ## Currently Supported Methods
 ```Model::raw()``` - execute raw SQL  
@@ -31,6 +29,11 @@ We do not intend to recreate ```Model::table()->x()``` functions.
 
 #### The following methods must be called via the PdoFish class
 ```PdoFish::truncate($table)``` - truncate a table, must be called via PdoFish class  
+
+Note: We do not intend to recreate ```Model::table()->x()``` functions.  
+
+## Installation
+You can install PdoFish using Composer or manually. 
 
 ## Usage
 - Begin by opening ```credentials.php``` and setting your database connection information.  
