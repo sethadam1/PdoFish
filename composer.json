@@ -2,6 +2,6 @@
 	"name": "sethadam1/PdoFish",
 	"description": "An Active Record style wrapper for PHP and PDO",
 	"require": {
-		"php": ">=7.2",
+		"php": ">=7.2"
 	}
 }
