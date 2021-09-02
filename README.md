@@ -32,16 +32,21 @@ The goal of this project was to recreate the _static_ methods that work with tab
 
 Note: We do not intend to recreate ```Model::table()->x()``` functions.  
 
-## Installation
-You can install PdoFish using Composer or manually. 
+Installation
+------------
+You can install PdoFish using Composer or manually.   
 
-## Usage
-- Begin by opening ```credentials.php``` and setting your database connection information.  
+Using composer:   
+```bash
+composer require sethadam1/pdofish
+```
+
+Manually: 
 - Upload the files to your web server.  
 - Add any models in the ```models/``` directory, being sure to use the example to extend the ```PdoFish``` class and set the ```$table``` variable and ```id```, if your primary key is not already called ```id```. 
 - Include Pdofish/PdoFish.php in your code and you should be ready to go. 
 
-```  
+```php  
 require_once '/path/to/PdoFish/PdoFish.php';  //include_once() is also ok
 ```
 
@@ -49,7 +54,7 @@ require_once '/path/to/PdoFish/PdoFish.php';  //include_once() is also ok
 To insert data into a table, you can use Active Record style syntax. Both of these are valid: 
 
 #### Create 
-```
+```php  
 $data = [
 	'id' => 1,  
 	'col1' => '2020-08-27 09:58:01',  
@@ -71,19 +76,19 @@ Unlike PHP Active Record, the ```->save()``` method can only be used to update e
 
 #### Read
 
-```
+```php  
 //print an object
 $x = ModelName::first(['conditions'=>['some_field=?', 'some_value']]);
 print_r($x); 
 ```  
 
-```
+```php  
 //print an associative array 
 $x = ModelName::first(['conditions'=>['some_field=?', 'some_value']], PDO::FETCH_ASSOC);
 print_r($x); 
 ```  
 
-```
+```php  
 //also prints an associative array   
 ModelName::set_fetch_mode(PDO::FETCH_ASSOC); 
 $x = ModelName::first(['conditions'=>['some_field=?', 'some_value']]);
@@ -96,19 +101,19 @@ $x = ModelName::find_by_pk(5);
 print_r($x);
 ```  
 
-```
+```php  
 // print a single row matching SQL query  
 $x = ModelName::find_by_sql('select * from random_table where random_field=12');
 print_r($x);
 ```  
 
-```
+```php  
 // print a row where id = 5   
 $x = ModelName::find(5);
 print_r($x); 
 ```
 
-```
+```php  
 // print 5 rows of data from this query   
 $x = ModelName::all([
 	'select'=>'field1, field2, field3',
@@ -122,7 +127,7 @@ print_r($x);
 ```
 
 #### Update  
-```  
+```php    
 // updates column "firstname" to "Boris" where id = 5
 ModeName::update(['firstname'=>'Boris'], ['id'=>5]); 
 
@@ -133,7 +138,7 @@ ModeName::update(['firstname'=>'June', 'lastname'=>'Basoon'], ['id'=>5]);
 You can use the save() method on an existing model object, just like you can in Active Record, provided it has a property called "id" that matches a unique column in the table.  
 
 Consider a table with three columns, "id", "colA", and "colB." 
-```
+```php  
 // this will work if ModelName has a pk of "id" 
 $y = ModelName::find(3); //find a model with primary key=3  
 $y->thevalue = "Updated field!";  
@@ -141,7 +146,7 @@ $y->save(); // this will work
 ```
 
 Now consider a table with three columns, "row_id", "colA", and "colB."   
-``` 
+```php   
 // this will NOT work  
 $y = ModelName::find(3); //find a model with primary key=3  
 $y->thevalue = "Updated field!";  
@@ -149,7 +154,7 @@ $y->save(); // this will NOT work, since $y does not have a property "id"
 ```  
   
 #### Delete  
-```  
+```php    
 // delete rows where column "firstname" is equal to "Boris"  
 ModeName::delete(['firstname'=>'Boris']);   
   
