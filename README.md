@@ -95,7 +95,7 @@ $x = ModelName::first(['conditions'=>['some_field=?', 'some_value']]);
 print_r($x); 
 ```  
 
-```
+```php  
 // print a row where primary key, in this case 'example_id' = 5
 $x = ModelName::find_by_pk(5);
 print_r($x);
