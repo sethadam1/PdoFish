@@ -1,5 +1,5 @@
 {
-	"name": "sethadam1/PdoFish",
+	"name": "sethadam1/pdofish",
 	"description": "An Active Record style wrapper for PHP and PDO",
 	"require": {
 		"php": ">=7.2"
