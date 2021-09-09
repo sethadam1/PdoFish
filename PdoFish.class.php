@@ -53,11 +53,14 @@ class PdoFish
 		$host     = $args['host'] ?? 'localhost';	// default: localhost
 		$charset  = $args['charset'] ?? 'utf8';		// default: utf-8
 		$password = $args['password'] ?? '';
-		$database =$args['database'];
-		$username =$args['username'];
+		$database = $args['database'];
+		$username = $args['username'];
 		$port     = isset($args['port']) ? 'port=' . $args['port'] . ';' : '';
 		self::$db = new PDO("$type:host=$host;$port"."dbname=$database;charset=$charset", $username, $password);
 		self::$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+		if($args['model_path']) {
+			self::set_model_path($args['model_path']);
+		}
 	}
 
 	/**
@@ -72,6 +75,19 @@ class PdoFish
 	}
 
 	/**
+	 * Returns data in the proper format
+	 *
+	 */
+	public static function return_data($stmt, $fetch_mode=NULL)
+	{
+		if(is_null($fetch_mode)) { $fetch_mode=static::set_fetch_mode($fetch_mode); }
+		if($fetch_mode != PDO::FETCH_OBJ) {
+			return $stmt->fetch($fetch_mode);
+		}
+		return $stmt->fetchObject(get_called_class());
+	}
+
+	/**
 	 * Set the PDO return type
 	 *
 	 * @return void
@@ -82,7 +98,7 @@ class PdoFish
 			$mode = PDO::FETCH_OBJ;
 		}
 		static::$fetch_mode = $mode;
-		return;
+		return $mode;
 	}
 
 	/**
@@ -158,38 +174,32 @@ class PdoFish
 		return $stmt;
 	}
 
-	public static function all($data=[], $fetch_mode=PDO::FETCH_OBJ)
+	public static function all($data=[], $fetch_mode=NULL)
 	{
-		if(!in_array($fetch_mode, [PDO::FETCH_ASSOC, PDO::FETCH_OBJ])) {
-			$fetch_mode = static::$fetch_mode;
+		if(is_null($fetch_mode)) {
+			$fetch_mode = static::get_fetch_mode();
 		}
 		$stmt = static::process($data);
 		return $stmt->fetchAll($fetch_mode);
 	}
 
-	public static function first($data, $fetch_mode=PDO::FETCH_OBJ)
+	public static function first($data, $fetch_mode=NULL)
 	{
-		if(!in_array($fetch_mode, [PDO::FETCH_ASSOC, PDO::FETCH_OBJ])) {
-			$fetch_mode = static::$fetch_mode;
-		}
 		$data['limit'] = 1;
 		$stmt = static::process($data);
-		return $stmt->fetch($fetch_mode);
+		return static::return_data($stmt,$fetch_mode);
 	}
 
-	public static function find_by_sql($sql, $args=NULL, $fetch_mode=PDO::FETCH_OBJ)
+	public static function find_by_sql($sql, $args=NULL, $fetch_mode=NULL)
 	{
-		if(!in_array($fetch_mode, [PDO::FETCH_ASSOC, PDO::FETCH_OBJ])) {
-			$fetch_mode = static::$fetch_mode;
-		}
 		$stmt = static::run($sql,$args);
-		return $stmt->fetch($fetch_mode);
+		return static::return_data($stmt,$fetch_mode);
 	}
 
-	public static function find_all_by_sql($sql, $args=NULL, $fetch_mode=PDO::FETCH_OBJ)
+	public static function find_all_by_sql($sql, $args=NULL, $fetch_mode=NULL)
 	{
-		if(!in_array($fetch_mode, [PDO::FETCH_ASSOC, PDO::FETCH_OBJ])) {
-			$fetch_mode = static::$fetch_mode;
+		if(is_null($fetch_mode)) {
+			$fetch_mode = static::get_fetch_mode();
 		}
 		$stmt = static::run($sql,$args);
 		return $stmt->fetchAll($fetch_mode);
@@ -218,30 +228,29 @@ class PdoFish
 	 * Get record by primary key
 	 *
 	 * @param  integer $id       	id or content of record
-	 * @param  object $fetchMode 	set return mode, e.g. PDO::FETCH_OBJ or PDO::FETCH_ASSOC
+	 * @param  object $fetch_mode 	set return mode, e.g. PDO::FETCH_OBJ or PDO::FETCH_ASSOC
 	 * @return object/array			returns single record
 	 */
-	public static function find_by_pk($id, $fetchMode = PDO::FETCH_OBJ)
+	public static function find_by_pk($id, $fetch_mode = NULL)
 	{
 		$sql = "SELECT * FROM ".static::get_table()." WHERE ".static::get_pk()."=?";
 		$stmt = static::$db->prepare($sql);
 		$stmt->execute([$id]);
-		return $stmt->fetch($fetchMode);
+		return static::return_data($stmt,$fetch_mode);
 	}
 
 	/**
 	 * find
 	 *
 	 * @param  integer $id			id of record
-	 * @param  object $fetchMode 	set return mode, e.g. PDO::FETCH_OBJ or PDO::FETCH_ASSOC
+	 * @param  object $fetch_mode 	set return mode, e.g. PDO::FETCH_OBJ or PDO::FETCH_ASSOC
 	 * @return object/array			returns single record
 	 */
-	public static function find($id, $fetchMode = NULL)
+	public static function find($id, $fetch_mode = NULL)
 	{
-		if(!is_null($fetchMode)) { self::set_fetch_mode($fetchMode); }
-		$fetch = static::$fetch_mode;
-		if($fetch != PDO::FETCH_OBJ) {
-			return static::run("SELECT * FROM ".static::get_table()." WHERE id = ?", [$id])->fetch($fetch);
+		if(is_null($fetch_mode)) { $fetch_mode=static::$fetch_mode; }
+		if($fetch_mode != PDO::FETCH_OBJ) {
+			return static::run("SELECT * FROM ".static::get_table()." WHERE id = ?", [$id])->fetch($fetch_mode);
 		}
 		return static::run("SELECT * FROM ".static::get_table()." WHERE id = ?", [$id])->fetchObject(get_called_class());
 	}
@@ -324,6 +333,29 @@ class PdoFish
 		return $stmt->rowCount();
 	}
 
+
+	/**
+	 * Update record by pk
+	 *
+	 * @param  mixed $pk value of primary key
+	 */
+	public static function update_by_pk($data, $pk)
+	{
+		// collect the values from data
+		$values = array_values($data);
+		$values[] = $pk;
+
+		// fields to update
+		$fieldDetails = null;
+		foreach ($data as $key => $value) {
+			$fieldDetails .= $key." = ?,";
+		}
+		$fieldDetails = rtrim($fieldDetails, ',');
+
+		$stmt = static::run("UPDATE ".static::get_table()." SET ".$fieldDetails." WHERE ".static::get_pk()."=?", $values);
+		return $stmt->rowCount();
+	}
+
 	/**
 	 * update record
 	 *
@@ -354,6 +386,20 @@ class PdoFish
 		}
 		$stmt = static::run("UPDATE ".static::get_table()." SET $fieldDetails WHERE $whereDetails", $values);
 		return $stmt->rowCount();
+	}
+
+	/**
+	 * delete a new, active record style
+	 *
+	 * @param  array $data - an array of column names and values
+	 */
+	public function deleteRow()
+	{
+		if(isset($this->id)) {
+			self::delete_by_id($this->id);
+			return $this;
+		}
+		return (object) $this;
 	}
 
 	/**
@@ -398,6 +444,19 @@ class PdoFish
 	{
 		return self::delete_by_id($id);
 	}
+
+	/**
+	 * Delete record by pk
+	 *
+	 * @param  mixed $pk value of primary key
+	 */
+	public static function delete_by_pk($pk)
+	{
+		$stmt = static::run("DELETE FROM ".static::get_table()." WHERE ".static::get_pk()." = ?", [$pk]);
+		return $stmt->rowCount();
+	}
+
+
 
 	/**
 	 * Delete record by ids
@@ -453,14 +512,13 @@ class PdoFish
 
 	public static function __callStatic ( string $name , array $args )
 	{
-		$fetch_mode = static::get_fetch_mode();
 		# one record
 		if (preg_match('/^find_by_(.+)/', $name, $matches)) {
 			$var_name = $matches[1];
 			$sql = "SELECT * FROM ".static::get_table()." WHERE ".$var_name."=?";
 			$stmt = static::$db->prepare($sql);
 			$stmt->execute([ $args[0] ]);
-			return $stmt->fetch($fetch_mode);
+			return static::return_data($stmt,$fetch_mode);
 		}
 		# multiple records
 		if (preg_match('/^find_all_by_(.+)/', $name, $matches)) {
@@ -468,8 +526,16 @@ class PdoFish
 			$sql = "SELECT * FROM ".static::get_table()." WHERE ".$var_name."=?";
 			$stmt = static::$db->prepare($sql);
 			$stmt->execute([ $args[0] ]);
-			return $stmt->fetchAll($fetch_mode);
+			return $stmt->fetchAll(static::get_fetch_mode());
 		}
+	}
+
+	private static function set_model_path($path) {
+		if('/' != substr($path,-1)) { $path .= "/"; }
+		foreach(glob($path.'*.php') as $filename) {
+			include_once $filename;
+		}
+		return;
 	}
 
 	static function startup($pdo_options) {
