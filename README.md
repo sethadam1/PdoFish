@@ -28,6 +28,7 @@ The goal of this project was to recreate the _static_ methods that work with tab
 ```Model::find_all_by_[field]``` - find multiple rows where one column matches the given value  
 
 #### The following methods must be called via the PdoFish class
+```PdoFish::load_models($path)``` - load PdoFish models. This can be done via instanciation or via this explicit function   
 ```PdoFish::truncate($table)``` - truncate a table, must be called via PdoFish class  
 
 Note: We do not intend to recreate ```Model::table()->x()``` functions.  
@@ -43,11 +44,11 @@ composer require sethadam1/pdofish
 
 Manually: 
 - Upload the files to your web server.  
-- Add any models in the ```models/``` directory, being sure to use the example to extend the ```PdoFish``` class and set the ```$table``` variable and ```id```, if your primary key is not already called ```id```. 
+- Add any models in your ```models/``` directory (or any other directory), being sure to use the example to extend the ```PdoFish``` class and set the ```$table``` variable and ```id```, if your primary key is not already called ```id```. 
 - Include Pdofish/PdoFish.php in your code and you should be ready to go. 
 
 ```php  
-require_once '/path/to/PdoFish/PdoFish.php';  //include_once() is also ok
+require_once '/path/to/PdoFish/PdoFish.php';  
 ```
 
 ## Basic CRUD
@@ -73,6 +74,21 @@ $x->save();
 ```
 
 Unlike PHP Active Record, the ```->save()``` method can only be used to update existing objects when they have a property called id, e.g. ```$x->id```. 
+  
+Another way to do it:   
+```php  
+$data = [
+	'id' => 1,  
+	'col1' => '2020-08-27 09:58:01',  
+	'col2'=> 'a string',  
+	'col3' => 12345  
+];   
+$insertid = ModelName::insert($data);    
+  
+echo $insertid;   
+// example response "3"  
+```
+
 
 #### Read
 
