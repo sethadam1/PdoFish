@@ -68,7 +68,7 @@ class PdoFish
 	 *
 	 * @param string $path
 	 */
-	public static function load_models(string $path)
+	final public static function load_models(string $path)
 	{
 		self::private_load_models($path);
 	}
