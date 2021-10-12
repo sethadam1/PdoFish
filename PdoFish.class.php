@@ -15,8 +15,6 @@ class PdoFish
 	static $tbl = null;
 	// primary key, defaults to 'id'
 	static $pk = 'id';
-	// primary key, defaults to 'id'
-	static private $input_vars = [];
 	// default return type, which defaults to object
 	static $fetch_mode = PDO::FETCH_OBJ;
 
