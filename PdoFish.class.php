@@ -59,8 +59,18 @@ class PdoFish
 		self::$db = new PDO("$type:host=$host;$port"."dbname=$database;charset=$charset", $username, $password);
 		self::$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 		if($args['model_path']) {
-			self::set_model_path($args['model_path']);
+			self::private_load_models($args['model_path']);
 		}
+	}
+
+	/**
+	 * load_models
+	 *
+	 * @param string $path
+	 */
+	public static function load_models(string $path)
+	{
+		self::private_load_models($path);
 	}
 
 	/**
@@ -138,7 +148,7 @@ class PdoFish
 	 * @param array $data
 	 * @return stmt resource
 	 */
-	private static function process($data)
+	private static function process(array $data)
 	{
 		$static_table = static::get_table();
 		if(!isset($data['from']) && isset($static_table)) {
@@ -164,7 +174,7 @@ class PdoFish
 		if($data['order']) { $postsql .= " ORDER BY ".$data['order']; }
 		if($data['limit']) { $postsql .= " LIMIT ".abs(intval($data['limit'])); }
 		// uncomment next line for SQL debugger
-		// error_log($sql." ".$postsql);
+		//error_log($sql." ".$postsql);
 		if(!empty($conditions)) {
 			$stmt = static::$db->prepare($sql." ".$postsql);
 			$stmt->execute($conditions);
@@ -262,7 +272,7 @@ class PdoFish
 	 * @param  array  $data      params
 	 * @return integer           returns number of records
 	 */
-	public static function count($data)
+	public static function count($data=[])
 	{
 		return (int) static::process($data)->rowCount();
 	}
@@ -314,9 +324,9 @@ class PdoFish
 	 * update record
 	 *
 	 * @param  array $data  array of columns and values
-	 * @param  array $where array of columns and values
+	 * @param  int $id array of columns and values
 	 */
-	public static function update_by_id($data, $id)
+	public static function update_by_id(array $data, int $id)
 	{
 		// collect the values from data
 		$values = array_values($data);
@@ -408,7 +418,7 @@ class PdoFish
 	 * @param  array $where array of columns and values
 	 * @param  integer $limit limit number of records
 	 */
-	public static function delete($where, $limit = 1)
+	public static function delete($where, $limit = NULL)
 	{
 		//collect the values from collection
 		$values = array_values($where);
@@ -425,7 +435,7 @@ class PdoFish
 		if (is_numeric($limit)) {
 			$limit = "LIMIT $limit";
 		}
-		$stmt = static::run("DELETE FROM  ".static::get_table()." WHERE $whereDetails $limit", $values);
+		$stmt = static::run("DELETE FROM  ".static::get_table()." WHERE $whereDetails", $values);
 		return $stmt->rowCount();
 	}
 
@@ -456,18 +466,29 @@ class PdoFish
 		return $stmt->rowCount();
 	}
 
+	/**
+	 * Delete multiple records by a single column
+	 *
+	 * @param  string $column name of column
+	 * @param  string or array $ids ids of records
+	 */
+	public static function deleteMany(string $column, $ids)
+	{
+		$str = (is_array($ids)) ? implode(",", $ids) : $ids;
+		$stmt = static::run("DELETE FROM ".static::get_table()." WHERE $column IN (".$str.")");
+		return $stmt->rowCount();
+	}
+
 
 
 	/**
-	 * Delete record by ids
+	 * Delete multiple records by a single column
 	 *
 	 * @param  string $column name of column
-	 * @param  string $ids ids of records
+	 * @param  string $val value of column
 	 */
-	public static function deleteMany(string $column, string $ids)
-	{
-		$stmt = static::run("DELETE FROM ".static::get_table()." WHERE $column IN ($ids)");
-		return $stmt->rowCount();
+	public static function delete_by_column($column, $val) {
+		return static::run("DELETE FROM ".static::get_table()." WHERE ".$column." = ?", $val);
 	}
 
 	/**
@@ -530,10 +551,12 @@ class PdoFish
 		}
 	}
 
-	private static function set_model_path($path) {
+	private static function private_load_models($path) {
 		if('/' != substr($path,-1)) { $path .= "/"; }
-		foreach(glob($path.'*.php') as $filename) {
-			include_once $filename;
+		if(is_dir($path)) { 
+			foreach(glob($path.'*.php') as $filename) {
+				include_once $filename;
+			}
 		}
 		return;
 	}
