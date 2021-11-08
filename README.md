@@ -16,7 +16,8 @@ The goal of this project was to recreate the _static_ methods that work with tab
 ```Model::find_all_by_sql()``` - returns all rows matching a query  
 ```Model::lastInsertId()``` - returns last insert id  
 ```Model::count()``` - return matching row count  
-```Model::save()``` - insert/create/save data  
+```Model::save()``` - insert/create/save data  \
+```Model::insert()``` - insert record  
 ```Model::update()``` - update field(s)  
 ```Model::delete()```  - delete a row  
 ```Model::delete_by_id()``` - delete by a column called "id"   
@@ -136,7 +137,7 @@ $x = ModelName::all([
 	'from'=>'table t',
 	'joins'=>'LEFT JOIN table2 t2 ON t.field1=t2.other_field',
 	'conditions' => ['some_field=?', 'some_value'],
-	'order'=>'third_field ASC',
+	'order'=>'field3 ASC',
 	'limit'=>5
 ], PDO::FETCH_OBJ);
 print_r($x);
@@ -153,19 +154,19 @@ ModeName::update(['firstname'=>'June', 'lastname'=>'Basoon'], ['id'=>5]);
   
 You can use the save() method on an existing model object, just like you can in Active Record, provided it has a property called "id" that matches a unique column in the table.  
 
-Consider a table with three columns, "id", "colA", and "colB." 
+Consider a table with three columns, "id", "columnA", and "columnB." 
 ```php  
 // this will work if ModelName has a pk of "id" 
 $y = ModelName::find(3); //find a model with primary key=3  
-$y->thevalue = "Updated field!";  
+$y->columnA = "Updated field!";  
 $y->save(); // this will work   
 ```
 
-Now consider a table with three columns, "row_id", "colA", and "colB."   
+Now consider a table with three columns, "row_id", "columnA", and "columnB."   
 ```php   
 // this will NOT work  
 $y = ModelName::find(3); //find a model with primary key=3  
-$y->thevalue = "Updated field!";  
+$y->columnA = "Updated field!";  
 $y->save(); // this will NOT work, since $y does not have a property "id"   
 ```  
   
