@@ -176,7 +176,7 @@ $y->save(); // this will NOT work, since $y does not have a property "id"
 ModeName::delete(['firstname'=>'Boris']);   
   
 // delete row where column "id" is equal to "5"  
-ModeName::delete_by_id(['firstname'=>'Boris']);   
+ModeName::delete_by_id(5);   
   
 // delete rows where column "user_id" is equal to 1, 2, or 3  
 ModeName::deleteMany(['user_id', '1,2,3']);   
