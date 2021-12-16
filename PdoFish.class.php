@@ -40,11 +40,11 @@ class PdoFish
 	public function initialize($args=null)
 	{
 		if (!isset($args['database'])) {
-			throw new Exception('PdoFish requires database name');
+			throw new Exception('PdoFish requires a database name');
 		}
 
 		if (!isset($args['username'])) {
-			throw new Exception('PdoFish requires database username');
+			throw new Exception('PdoFish requires a database username');
 		}
 
 		$type     = $args['type'] ?? 'mysql'; 		// default to mysql
@@ -56,7 +56,7 @@ class PdoFish
 		$port     = isset($args['port']) ? 'port=' . $args['port'] . ';' : '';
 		self::$db = new PDO("$type:host=$host;$port"."dbname=$database;charset=$charset", $username, $password);
 		self::$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-		if($args['model_path']) {
+		if($args['model_path'] && !is_null($args['model_path'])) {
 			self::private_load_models($args['model_path']);
 		}
 	}
@@ -153,7 +153,7 @@ class PdoFish
 			$data['from'] = $static_table;
 		}
 		$select = $data['select'] ?? "*";
-		$sql = "SELECT ".$select." FROM ".$data['from'];
+		$sql = "SELECT ".$select." FROM ".$data['from']."";
 
 		if(isset($data['joins'])) { $sql .= " ".$data['joins']; }
 		if(!empty($data['conditions'])) {
@@ -172,7 +172,7 @@ class PdoFish
 		if($data['order']) { $postsql .= " ORDER BY ".$data['order']; }
 		if($data['limit']) { $postsql .= " LIMIT ".abs(intval($data['limit'])); }
 		// uncomment next line for SQL debugger
-		//error_log($sql." ".$postsql);
+		// error_log($sql." ".$postsql);
 		if(!empty($conditions)) {
 			$stmt = static::$db->prepare($sql." ".$postsql);
 			$stmt->execute($conditions);
@@ -241,7 +241,7 @@ class PdoFish
 	 */
 	public static function find_by_pk($id, $fetch_mode = NULL)
 	{
-		$sql = "SELECT * FROM ".static::get_table()." WHERE ".static::get_pk()."=?";
+		$sql = "SELECT * FROM `".static::get_table()."` WHERE ".static::get_pk()."=?";
 		$stmt = static::$db->prepare($sql);
 		$stmt->execute([$id]);
 		return static::return_data($stmt,$fetch_mode);
@@ -258,9 +258,9 @@ class PdoFish
 	{
 		if(is_null($fetch_mode)) { $fetch_mode=static::$fetch_mode; }
 		if($fetch_mode != PDO::FETCH_OBJ) {
-			return static::run("SELECT * FROM ".static::get_table()." WHERE id = ?", [$id])->fetch($fetch_mode);
+			return static::run("SELECT * FROM `".static::get_table()."` WHERE id = ?", [$id])->fetch($fetch_mode);
 		}
-		return static::run("SELECT * FROM ".static::get_table()." WHERE id = ?", [$id])->fetchObject(get_called_class());
+		return static::run("SELECT * FROM `".static::get_table()."` WHERE id = ?", [$id])->fetchObject(get_called_class());
 	}
 
 	/**
@@ -312,8 +312,7 @@ class PdoFish
 
 		//convert array into comma seperated string
 		$placeholders = implode(',', array_values($placeholders));
-
-		static::run("INSERT INTO ".static::get_table()." ($columns) VALUES ($placeholders)", $values);
+		static::run("INSERT INTO `".static::get_table()."` ($columns) VALUES ($placeholders)", $values);
 		return static::lastInsertId();
 	}
 
@@ -337,7 +336,7 @@ class PdoFish
 		}
 		$fieldDetails = rtrim($fieldDetails, ',');
 
-		$stmt = static::run("UPDATE ".static::get_table()." SET ".$fieldDetails." WHERE id=?", $values);
+		$stmt = static::run("UPDATE `".static::get_table()."` SET ".$fieldDetails." WHERE id=?", $values);
 		return $stmt->rowCount();
 	}
 
@@ -360,7 +359,7 @@ class PdoFish
 		}
 		$fieldDetails = rtrim($fieldDetails, ',');
 
-		$stmt = static::run("UPDATE ".static::get_table()." SET ".$fieldDetails." WHERE ".static::get_pk()."=?", $values);
+		$stmt = static::run("UPDATE `".static::get_table()."` SET ".$fieldDetails." WHERE ".static::get_pk()."=?", $values);
 		return $stmt->rowCount();
 	}
 
@@ -392,7 +391,7 @@ class PdoFish
 			$whereDetails .= $i == 0 ? "$key = ?" : " AND $key = ?";
 			$i++;
 		}
-		$stmt = static::run("UPDATE ".static::get_table()." SET $fieldDetails WHERE $whereDetails", $values);
+		$stmt = static::run("UPDATE `".static::get_table()."` SET $fieldDetails WHERE $whereDetails", $values);
 		return $stmt->rowCount();
 	}
 
@@ -433,7 +432,7 @@ class PdoFish
 		if (is_numeric($limit)) {
 			$limit = "LIMIT $limit";
 		}
-		$stmt = static::run("DELETE FROM  ".static::get_table()." WHERE $whereDetails", $values);
+		$stmt = static::run("DELETE FROM `".static::get_table()."` WHERE $whereDetails", $values);
 		return $stmt->rowCount();
 	}
 
@@ -444,7 +443,7 @@ class PdoFish
 	 */
 	public static function delete_by_id($id)
 	{
-		$stmt = static::run("DELETE FROM ".static::get_table()." WHERE id = ?", [$id]);
+		$stmt = static::run("DELETE FROM `".static::get_table()."` WHERE id = ?", [$id]);
 		return $stmt->rowCount();
 	}
 
@@ -460,7 +459,7 @@ class PdoFish
 	 */
 	public static function delete_by_pk($pk)
 	{
-		$stmt = static::run("DELETE FROM ".static::get_table()." WHERE ".static::get_pk()." = ?", [$pk]);
+		$stmt = static::run("DELETE FROM `".static::get_table()."` WHERE ".static::get_pk()." = ?", [$pk]);
 		return $stmt->rowCount();
 	}
 
@@ -473,7 +472,7 @@ class PdoFish
 	public static function deleteMany(string $column, $ids)
 	{
 		$str = (is_array($ids)) ? implode(",", $ids) : $ids;
-		$stmt = static::run("DELETE FROM ".static::get_table()." WHERE $column IN (".$str.")");
+		$stmt = static::run("DELETE FROM `".static::get_table()."` WHERE $column IN (".$str.")");
 		return $stmt->rowCount();
 	}
 
@@ -486,7 +485,7 @@ class PdoFish
 	 * @param  string $val value of column
 	 */
 	public static function delete_by_column($column, $val) {
-		return static::run("DELETE FROM ".static::get_table()." WHERE ".$column." = ?", $val);
+		return static::run("DELETE FROM `".static::get_table()."` WHERE ".$column." = ?", $val);
 	}
 
 	/**
@@ -498,7 +497,7 @@ class PdoFish
 	final public static function truncate($table)
 	{
 		if('PdoFish'!=get_called_class()) { return false; }
-		$stmt = static::run("TRUNCATE TABLE ".$table);
+		$stmt = static::run("TRUNCATE TABLE `".$table."`");
 		return $stmt->rowCount();
 	}
 
@@ -534,7 +533,7 @@ class PdoFish
 		# one record
 		if (preg_match('/^find_by_(.+)/', $name, $matches)) {
 			$var_name = $matches[1];
-			$sql = "SELECT * FROM ".static::get_table()." WHERE ".$var_name."=?";
+			$sql = "SELECT * FROM `".static::get_table()."` WHERE ".$var_name."=?";
 			$stmt = static::$db->prepare($sql);
 			$stmt->execute([ $args[0] ]);
 			return static::return_data($stmt,$fetch_mode);
@@ -542,7 +541,7 @@ class PdoFish
 		# multiple records
 		if (preg_match('/^find_all_by_(.+)/', $name, $matches)) {
 			$var_name = $matches[1];
-			$sql = "SELECT * FROM ".static::get_table()." WHERE ".$var_name."=?";
+			$sql = "SELECT * FROM `".static::get_table()."` WHERE ".$var_name."=?";
 			$stmt = static::$db->prepare($sql);
 			$stmt->execute([ $args[0] ]);
 			return $stmt->fetchAll(static::get_fetch_mode());
@@ -553,7 +552,7 @@ class PdoFish
 		if('/' != substr($path,-1)) { $path .= "/"; }
 		if(is_dir($path)) { 
 			foreach(glob($path.'*.php') as $filename) {
-				include_once $filename;
+				@include_once $filename;
 			}
 		}
 		return;
