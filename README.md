@@ -32,7 +32,11 @@ The goal of this project was to recreate the _static_ methods that work with tab
 ```PdoFish::load_models($path)``` - load PdoFish models. This can be done via instanciation or via this explicit function   
 ```PdoFish::truncate($table)``` - truncate a table, must be called via PdoFish class  
 
-Note: We do not intend to recreate ```Model::table()->x()``` functions.  
+#### The following methods are also supported: 
+```PdoFish::connection()->query($sql)``` will execute a raw SQL statement via PDO's query() interface  
+```PdoFish::table()->last_sql``` will return the last SQL query run through PdoFish. Note that it will not capture SQL run through connection().  
+
+Note: We do not intend to recreate other ```Model::table()->xxx``` or ```Model::connection()->xxx``` conventions.  
 
 Installation
 ------------
@@ -70,13 +74,13 @@ $x = new ModelName();
 $x->id = 1;  
 $x->col1 = '2020-08-27 09:58:01';  
 $x->col2 = 'a string';  
-$x->col312345;  
+$x->col3 = "12345";  
 $x->save();  
 ```
 
 Unlike PHP Active Record, the ```->save()``` method can only be used to update existing objects when they have a property called id, e.g. ```$x->id```. 
   
-Another way to do it:   
+Another, simpler, way to do it:   
 ```php  
 $data = [
 	'id' => 1,  
