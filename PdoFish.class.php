@@ -16,6 +16,8 @@ class PdoFish
 	static $tbl = null;
 	// primary key, defaults to 'id'
 	static $pk = 'id';
+	// stores last SQL query 
+	static $last_sql = null;
 	// default return type, which defaults to object
 	static $fetch_mode = PDO::FETCH_OBJ;
 
@@ -174,6 +176,7 @@ class PdoFish
 		if($data['limit']) { $postsql .= " LIMIT ".abs(intval($data['limit'])); }
 		// uncomment next line for SQL debugger
 		// error_log($sql." ".$postsql);
+		static::$last_sql = $sql." ".$postsql;
 		if(!empty($conditions)) {
 			$stmt = static::$db->prepare($sql." ".$postsql);
 			$stmt->execute($conditions);
@@ -209,6 +212,12 @@ class PdoFish
 		//var_dump(self::$db);
 		return self::$db;
 	}
+	
+	public static function table() : ?object {
+		$h = new PdoFish();  
+		$h->last_sql = static::$last_sql;
+		return $h; 
+	}
 
 	public static function find_all_by_sql($sql, $args=NULL, $fetch_mode=NULL)
 	{
@@ -228,11 +237,11 @@ class PdoFish
 	 */
 	public static function run($sql, $args = [])
 	{
+		static::$last_sql = $sql;
 		if (empty($args)) {
 			return static::$db->query($sql);
 		}
-
-		$stmt = static::$db->prepare($sql);
+		$stmt = static::$db->prepare($sql);  
 		$stmt->execute($args);
 
 		return $stmt;
@@ -248,6 +257,7 @@ class PdoFish
 	public static function find_by_pk($id, $fetch_mode = NULL)
 	{
 		$sql = "SELECT * FROM `".static::get_table()."` WHERE ".static::get_pk()."=?";
+		static::$last_sql = $sql;
 		$stmt = static::$db->prepare($sql);
 		$stmt->execute([$id]);
 		return static::return_data($stmt,$fetch_mode);
