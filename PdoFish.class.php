@@ -273,6 +273,8 @@ class PdoFish
 	 */
 	public static function find($id, $fetch_mode = NULL)
 	{
+		if('all' == strtolower($id)) { return static::all($fetch_mode); }
+		if('first' == strtolower($id)) { return static::first($fetch_mode); }
 		if(is_null($fetch_mode)) { $fetch_mode=static::$fetch_mode; }
 		if($fetch_mode != PDO::FETCH_OBJ) {
 			return static::run("SELECT * FROM `".static::get_table()."` WHERE id = ?", [$id])->fetch($fetch_mode);
