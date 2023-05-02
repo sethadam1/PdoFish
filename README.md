@@ -97,6 +97,7 @@ echo $insertid;
 
 #### Read
 
+Several of the ways to read data from PHPAR are supported by PDOFish. 
 ```php  
 //print an object
 $x = ModelName::first(['conditions'=>['some_field=?', 'some_value']]);
@@ -145,6 +146,19 @@ $x = ModelName::all([
 	'limit'=>5
 ], PDO::FETCH_OBJ);
 print_r($x);
+```
+
+These PHPAR styles are supported, but not reccommended: 
+```php  
+// print a row where name is "John"   
+$x = ModelName::find('first' array('conditions'=>array('name=?','John')));
+print_r($x); 
+```
+
+```php  
+// print all rows where user_id is greater than 1   
+$x = ModelName::find('all' array('conditions'=>array('id>?','1')));
+print_r($x); 
 ```
 
 #### Update  
