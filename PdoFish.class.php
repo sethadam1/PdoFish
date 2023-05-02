@@ -2,7 +2,8 @@
 
 /**
  * PdoFish, a wrapper for PDO
- * modeled after ActiveRecord and phpActiveRecord
+ * PHP support for ActiveRecord-style syntax 
+ * modeled after phpActiveRecord
  */
 
 class PdoFish
@@ -163,11 +164,11 @@ class PdoFish
 				$conditions[] = $c;
 			}
 		}
-		if($data['having']) {
-			$postsql .= "HAVING ".$data['having'];
-		}
 		if($data['group']) {
-			$postsql .= "GROUP BY ".$data['group'];
+			$postsql .= " GROUP BY ".$data['group'];
+		}
+		if($data['having']) {
+			$postsql .= " HAVING ".$data['having'];
 		}
 		if($data['order']) { $postsql .= " ORDER BY ".$data['order']; }
 		if($data['limit']) { $postsql .= " LIMIT ".abs(intval($data['limit'])); }
@@ -191,7 +192,7 @@ class PdoFish
 		return $stmt->fetchAll($fetch_mode);
 	}
 
-	public static function first($data, $fetch_mode=NULL)
+	public static function first($data=[], $fetch_mode=NULL)
 	{
 		$data['limit'] = 1;
 		$stmt = static::process($data);
@@ -202,6 +203,11 @@ class PdoFish
 	{
 		$stmt = static::run($sql,$args);
 		return static::return_data($stmt,$fetch_mode);
+	}
+	
+	public static function connection() : ?object {
+		//var_dump(self::$db);
+		return self::$db;
 	}
 
 	public static function find_all_by_sql($sql, $args=NULL, $fetch_mode=NULL)
@@ -300,11 +306,12 @@ class PdoFish
 	 */
 	public static function insert($data)
 	{
-		//add columns into comma seperated string
+		//add columns into comma separated string
 		$columns = implode(',', array_keys($data));
 
 		//get values
 		$values = array_values($data);
+		if(!is_array($values)) { $values = []; } 
 
 		$placeholders = array_map(function ($val) {
 			return '?';
@@ -321,7 +328,7 @@ class PdoFish
 	 * update record
 	 *
 	 * @param  array $data  array of columns and values
-	 * @param  int $id array of columns and values
+	 * @param  int $id 
 	 */
 	public static function update_by_id(array $data, int $id)
 	{
@@ -566,4 +573,3 @@ class PdoFish
 		return(static::$instance);
 	}
 }
-
