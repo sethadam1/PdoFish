@@ -140,6 +140,7 @@ class PdoFish
 	 */
 	public static function raw($sql)
 	{
+		static::$last_sql = $sql;
 		static::$db->query($sql);
 	}
 
