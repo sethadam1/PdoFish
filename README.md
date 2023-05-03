@@ -43,6 +43,7 @@ Quite a bit, but hopefully, not conventions you need. Here is a list of known PH
 - transactions, including rollbacks  
 - eager loading  
 - validations  
+- the ```delete_all()``` method
 - the ```last()``` finder method  
 - feeding an array to finders like ```first()``` or ```find()```
 - read-only models 
