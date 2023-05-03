@@ -458,6 +458,38 @@ class PdoFish
 	}
 
 	/**
+	 * Delete multiple records
+	 *
+	 * @param  array $conditions
+	 */
+	public static function delete_all($data)  
+	{
+		$static_table = static::get_table();
+		if(!isset($data['from']) && isset($static_table)) {
+			$data['from'] = $static_table;
+		}
+		if(!isset($data['from'])) { return; } 
+		$sql = "DELETE FROM ".$data['from']." ";
+		if(!empty($data['conditions'])) {
+			$sql .= " WHERE ".$data['conditions'][0];
+			foreach($data['conditions'] as $k => $c) {
+				if(0 == $k) { continue; }
+				$conditions[] = $c;
+			}
+		}
+		if($data['limit']) { $sql .= " LIMIT ".abs(intval($data['limit'])); }
+		static::$last_sql = $sql;
+		if(!empty($conditions)) {
+			$stmt = static::$db->prepare($sql);
+			$stmt->execute($conditions);
+		} else {
+			$stmt = static::$db->query($sql);
+		}
+		
+	}
+
+
+	/**
 	 * Delete record by id
 	 *
 	 * @param  integer $id id of record
