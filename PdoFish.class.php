@@ -276,10 +276,11 @@ class PdoFish
 		if('all' == strtolower($id)) { return static::all($fetch_mode); }
 		if('first' == strtolower($id)) { return static::first($fetch_mode); }
 		if(is_null($fetch_mode)) { $fetch_mode=static::$fetch_mode; }
+		$field = static::$primary_key ?? 'id'; 
 		if($fetch_mode != PDO::FETCH_OBJ) {
-			return static::run("SELECT * FROM `".static::get_table()."` WHERE id = ?", [$id])->fetch($fetch_mode);
+			return static::run("SELECT * FROM `".static::get_table()."` WHERE ".$field." = ?", [$id])->fetch($fetch_mode);
 		}
-		return static::run("SELECT * FROM `".static::get_table()."` WHERE id = ?", [$id])->fetchObject(get_called_class());
+		return static::run("SELECT * FROM `".static::get_table()."` WHERE ".$field." = ?", [$id])->fetchObject(get_called_class());
 	}
 
 	/**
@@ -529,14 +530,27 @@ class PdoFish
 	public function save($debug=NULL)
 	{
 		if(1 == $debug) { var_dump($this); return; }
-		if($this->id) {
+		// next lines, updating a record with a PK that isn't ID
+		if(isset(static::$primary_key)) { 
 			$data = (array) $this;
-			unset($data['id']);
-			self::update_by_id($data,$this->id);
-			return $this;
-		}
+			if(!is_array($data)) { return false; }
+			$pk = static::$primary_key; 
+			if(isset($data[$pk])) { 
+				$pk_val = $data[$pk];
+				unset($data[$pk]);
+				self::update_by_pk($data,$pk_val);
+				return (object) $data;
+			}
+		} 
 		$data = (array) $this;
 		if(!is_array($data)) { return false; }
+		// next lines, updating a record with a PK of ID
+		if($data['id']) {
+			unset($data['id']);
+			self::update_by_id($data,$this->id);
+			return (object) $data;
+		} 
+		// otherwise, insert as new record
 		static::insert($data);
 		return (object) $data;
 	}
