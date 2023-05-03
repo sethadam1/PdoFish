@@ -36,7 +36,18 @@ The goal of this project was to recreate the _static_ methods that work with tab
 ```PdoFish::connection()->query($sql)``` will execute a raw SQL statement via PDO's query() interface  
 ```PdoFish::table()->last_sql``` will return the last SQL query run through PdoFish. Note that it will not capture SQL run through connection().  
 
-Note: We do not intend to recreate other ```Model::table()->xxx``` or ```Model::connection()->xxx``` conventions.  
+What's Not Supported
+------------
+Quite a bit, but hopefully, not conventions you need. Here is a list of known PHPAR features not yet implemented in PdoFish: 
+- foreign key relationships  
+- transactions, including rollbacks  
+- eager loading  
+- validations  
+- the ```last()``` finder method  
+- feeding an array to finders like ```first()``` or ```find()```
+- read-only models 
+- associations, such as ```$has_many``` or ```$belongs_to``` (if set in models, these properties will be safely ignored)
+- ```Model::table()->xxx``` properties other than ```last_sql``` 
 
 Installation
 ------------
