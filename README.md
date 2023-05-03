@@ -21,6 +21,7 @@ The goal of this project was to recreate the _static_ methods that work with tab
 ```Model::update()``` - update field(s)  
 ```Model::delete()```  - delete a row  
 ```Model::delete_by_id()``` - delete by a column called "id"   
+```Model::delete_all()``` - delete via criteria provided   
 ```Model::deleteMany()``` - delete multiple rows matching criteria   
 ```Model::set_fetch_mode()``` - set the PDO fetch mode, e.g. PDO::FETCH_OBJ or PDO::FETCH_ASSOC  
 
@@ -42,8 +43,7 @@ Quite a bit, but hopefully, not conventions you need. Here is a list of known PH
 - foreign key relationships  
 - transactions, including rollbacks  
 - eager loading  
-- validations  
-- the ```delete_all()``` method
+- validations 
 - the ```last()``` finder method  
 - feeding an array to finders like ```first()``` or ```find()```
 - read-only models 
@@ -218,6 +218,9 @@ ModeName::delete_by_id(5);
   
 // delete rows where column "user_id" is equal to 1, 2, or 3  
 ModeName::deleteMany(['user_id', '1,2,3']);   
+
+// delete via criteria, e.g. rows where column "user_id" is equal to 1, 2, or 3  
+ModeName::delete_all([ 'conditions'=>['user_id=? OR user_id=? OR user_id=?',1,2,3] ]);   
    
 // this will truncate an entire table. You MUST call this via the PdoFish class, and not a child class  
 PdoFish::truncate('tableName');  
