@@ -78,9 +78,9 @@ $x->col3 = "12345";
 $x->save();  
 ```
 
-Unlike PHP Active Record, the ```->save()``` method can only be used to update existing objects when they have a property called id, e.g. ```$x->id```. 
+Like PHP Active Record, the ```->save()``` method can be used to update existing objects OR insert new ones. However, if the primary key is not called "id," you'll need to make sure you set a primary key on the Model. If you don't specify the primary key in that case, the update will fail and it will attempt to insert a new row. 
   
-Another, simpler, way to do it:   
+A non-PHPAR way to do inserting is as follows:   
 ```php  
 $data = [
 	'id' => 1,  
@@ -174,7 +174,7 @@ You can use the save() method on an existing model object, just like you can in 
 
 Consider a table with three columns, "id", "columnA", and "columnB." 
 ```php  
-// this will work if ModelName has a pk of "id" 
+// this will work if ModelName has a pk of "id" or has a $primary_key defined. 
 $y = ModelName::find(3); //find a model with primary key=3  
 $y->columnA = "Updated field!";  
 $y->save(); // this will work   
@@ -182,12 +182,20 @@ $y->save(); // this will work
 
 Now consider a table with three columns, "row_id", "columnA", and "columnB."   
 ```php   
-// this will NOT work  
+// this will also work  
 $y = ModelName::find(3); //find a model with primary key=3  
 $y->columnA = "Updated field!";  
 $y->save(); // this will NOT work, since $y does not have a property "id"   
 ```  
-  
+
+But ModelName must have the right properties defined, like so:  
+```php   
+class ModelName extends PdoFish {
+	static $table_name = 'tablename';
+	static $primary_key = 'row_id';
+}
+``` 
+
 #### Delete  
 ```php    
 // delete rows where column "firstname" is equal to "Boris"  
