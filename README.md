@@ -51,6 +51,7 @@ Quite a bit, but hopefully, not conventions you need. Here is a list of known PH
 - associations, such as ```$has_many``` or ```$belongs_to``` (if set in models, these properties will be safely ignored)  
 - ```Model::table()->xxx``` properties other than ```last_sql```   
 - auto timestamping of ```updated_at``` and ```created_at``` fields
+- feeding an array to the ```joins``` element of your finder array argument. ```joins``` should be a string. See [arguments supported](#arguments-supported) for more. 
 
 Installation
 ------------
@@ -236,7 +237,7 @@ $y->delete(); // this will not work
 The following arguments are supported in the PdoFish queries:  
 ```select``` - columns to select  
 ```from``` - table, or table and an alias _e.g. "prices p"_  
-```joins``` - a string of joins in SQL syntax, _e.g. LEFT JOIN table2 on prices.field=table2.field_   
+```joins``` - a **string** of joins in SQL syntax, _e.g. LEFT JOIN table2 on prices.field=table2.field_  Note that you cannot use an array here.   
 ```conditions``` - an array of SQL, using ? placeholders, and arguments to be bound _e.g. ['year=? AND mood=?',2021,'happy']_   
 ```group``` - group by, using a field name  
 ```having``` - having, _e.g. 'count(x)>3'_  
