@@ -49,6 +49,7 @@ Quite a bit, but hopefully, not conventions you need. Here is a list of known PH
 - read-only models   
 - associations, such as ```$has_many``` or ```$belongs_to``` (if set in models, these properties will be safely ignored)  
 - ```Model::table()->xxx``` properties other than ```last_sql```   
+- auto timestamping of ```updated_at``` and ```created_at``` fields
 
 Installation
 ------------
