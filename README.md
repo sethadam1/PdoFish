@@ -45,7 +45,8 @@ Quite a bit, but hopefully, not conventions you need. Here is a list of known PH
 - eager loading  
 - validations 
 - the ```last()``` finder method  
-- feeding an array to finders like ```first()``` or ```find()```  
+- feeding an array to ```find()```  
+- feeding an array of values to ```first()```, e.g. ```ModelName::first(array(2,3));```  
 - read-only models   
 - associations, such as ```$has_many``` or ```$belongs_to``` (if set in models, these properties will be safely ignored)  
 - ```Model::table()->xxx``` properties other than ```last_sql```   
