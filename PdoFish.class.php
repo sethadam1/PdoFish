@@ -215,12 +215,14 @@ class PdoFish
 		return static::return_data($stmt,$fetch_mode);
 	}
 	
-	public static function connection() : ?object {
+	public static function connection() : ?object 
+	{
 		//var_dump(self::$db);
 		return self::$db;
 	}
 	
-	public static function table() : ?object {
+	public static function table() : ?object 
+	{
 		$h = new PdoFish();  
 		$h->last_sql = static::$last_sql;
 		return $h; 
