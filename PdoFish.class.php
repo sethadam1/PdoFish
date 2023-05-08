@@ -202,6 +202,12 @@ class PdoFish
 		$stmt = static::process($data);
 		return static::return_data($stmt,$fetch_mode);
 	}
+	
+	public static function last($data=[], $fetch_mode=NULL)
+	{
+		$all = static::all($data); 
+		return array_pop($all); 
+	}
 
 	public static function find_by_sql($sql, $args=NULL, $fetch_mode=NULL)
 	{
