@@ -41,13 +41,20 @@ The goal of this project was to recreate the _static_ methods that work with tab
 What's Not Supported
 ------------
 Quite a bit, but hopefully, not conventions you need. Here is a list of known PHPAR features not yet implemented in PdoFish: 
+- multiple active connections (coming in a future version)
 - foreign key relationships  
 - transactions, including rollbacks  
 - eager loading  
 - validations 
+- delegators
+- attribute setters 
+- aliases
+- serialization 
+- automatic timestamping
 - feeding an array to ```find()```  
 - feeding an array of values to ```first()```, e.g. ```ModelName::first(array(2,3));```  
 - read-only models   
+- callbacks - before callbacks and after callbacks 
 - associations, such as ```$has_many``` or ```$belongs_to``` (if set in models, these properties will be safely ignored)  
 - ```Model::table()->xxx``` properties other than ```last_sql```   
 - auto timestamping of ```updated_at``` and ```created_at``` fields
