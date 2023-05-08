@@ -46,6 +46,7 @@ Quite a bit, but hopefully, not conventions you need. Here is a list of known PH
 - transactions, including rollbacks  
 - eager loading  
 - validations 
+- associations
 - delegators
 - attribute setters 
 - aliases
