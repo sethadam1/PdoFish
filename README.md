@@ -12,6 +12,7 @@ The goal of this project was to recreate the _static_ methods that work with tab
 ```Model::find()``` - find by a column called "id"  
 ```Model::all()``` - return all rows matching a query   
 ```Model::first()``` - returns the first row matching a query  
+```Model::last()``` - returns the first row matching a query  
 ```Model::find_by_sql()``` - returns a single row matching a query  
 ```Model::find_all_by_sql()``` - returns all rows matching a query  
 ```Model::lastInsertId()``` - returns last insert id  
@@ -44,7 +45,6 @@ Quite a bit, but hopefully, not conventions you need. Here is a list of known PH
 - transactions, including rollbacks  
 - eager loading  
 - validations 
-- the ```last()``` finder method  
 - feeding an array to ```find()```  
 - feeding an array of values to ```first()```, e.g. ```ModelName::first(array(2,3));```  
 - read-only models   
@@ -114,13 +114,16 @@ echo $insertid;
 
 Several of the ways to read data from PHPAR are supported by PDOFish. 
 ```php  
-//print an object
+//both of these print an object
 $x = ModelName::first(['conditions'=>['some_field=?', 'some_value']]);
+print_r($x); 
+
+$x = ModelName::last(['conditions'=>['some_field=?', 'some_value']]);
 print_r($x); 
 ```  
 
 ```php  
-//print an associative array 
+//prints an associative array 
 $x = ModelName::first(['conditions'=>['some_field=?', 'some_value']], PDO::FETCH_ASSOC);
 print_r($x); 
 ```  
