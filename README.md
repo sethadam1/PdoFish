@@ -239,9 +239,9 @@ ModeName::delete_all([ 'conditions'=>['user_id=? OR user_id=? OR user_id=?',1,2,
 // this will truncate an entire table. You MUST call this via the PdoFish class, and not a child class  
 PdoFish::truncate('tableName');  
 
-// you cannot use table()->method() functions   
+// delete active-record style
 $y = ModelName::find(3); //find a model with primary key=3  
-$y->delete(); // this will not work   
+$y->delete(); // this will work
 ```    
   
 ## Arguments supported
@@ -254,6 +254,7 @@ The following arguments are supported in the PdoFish queries:
 ```having``` - having, _e.g. 'count(x)>3'_  
 ```order``` - order by, _e.g. 'id DESC'  
 ```limit``` - a positive integer greater than 0  
+```offset``` - a positive integer greater than or equal to 0  
 
 ## Credits
 Some of this code has roots in the [David Carr](https://twitter.com/dcblogdev)'s [PDOWrapper](https://dcblog.dev/docs/pdo-wrapper) project. 

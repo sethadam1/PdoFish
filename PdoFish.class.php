@@ -145,21 +145,27 @@ class PdoFish
 	}
 
 	/**
-	 * Parse a SQL query, ActiveRecord style
+	 * Build a SQL query, ActiveRecord style
 	 *
 	 * @param array $data
-	 * @return stmt resource
+	 * @param bool $include_paging include limit/offset clauses
+	 * @return array tuple of [sql, conditions]
 	 */
-	private static function process(array $data)
+	private static function build_select_sql(array $data, bool $include_paging = true)
 	{
 		$static_table = static::get_table();
 		if(!isset($data['from']) && isset($static_table)) {
 			$data['from'] = $static_table;
 		}
+		if(!isset($data['from'])) {
+			throw new Exception('No table specified for query');
+		}
+		$conditions = [];
+		$postsql = "";
 		$select = $data['select'] ?? "*";
 		$sql = "SELECT ".$select." FROM ".$data['from']."";
 
-		if(isset($data['joins'])) { $sql .= " ".$data['joins']; }
+		if(!empty($data['joins'])) { $sql .= " ".$data['joins']; }
 		if(!empty($data['conditions'])) {
 			$sql .= " WHERE ".$data['conditions'][0];
 			foreach($data['conditions'] as $k => $c) {
@@ -167,22 +173,47 @@ class PdoFish
 				$conditions[] = $c;
 			}
 		}
-		if($data['group']) {
+		if(!empty($data['group'])) {
 			$postsql .= " GROUP BY ".$data['group'];
 		}
-		if($data['having']) {
+		if(!empty($data['having'])) {
 			$postsql .= " HAVING ".$data['having'];
 		}
-		if($data['order']) { $postsql .= " ORDER BY ".$data['order']; }
-		if($data['limit']) { $postsql .= " LIMIT ".abs(intval($data['limit'])); }
+		if(!empty($data['order'])) { $postsql .= " ORDER BY ".$data['order']; }
+		if($include_paging) {
+			$has_limit = isset($data['limit']) && $data['limit'] !== '' && !is_null($data['limit']);
+			$has_offset = isset($data['offset']) && $data['offset'] !== '' && !is_null($data['offset']);
+			if($has_limit) {
+				$postsql .= " LIMIT ".abs(intval($data['limit']));
+			}
+			if($has_offset) {
+				if(!$has_limit) {
+					// MySQL requires LIMIT with OFFSET
+					$postsql .= " LIMIT 18446744073709551615";
+				}
+				$postsql .= " OFFSET ".abs(intval($data['offset']));
+			}
+		}
+		return [trim($sql." ".$postsql), $conditions];
+	}
+
+	/**
+	 * Parse and execute a SQL query, ActiveRecord style
+	 *
+	 * @param array $data
+	 * @return stmt resource
+	 */
+	private static function process(array $data)
+	{
+		list($sql, $conditions) = static::build_select_sql($data, true);
 		// uncomment next line for SQL debugger
 		// error_log($sql." ".$postsql);
-		static::$last_sql = $sql." ".$postsql;
+		static::$last_sql = $sql;
 		if(!empty($conditions)) {
-			$stmt = static::$db->prepare($sql." ".$postsql);
+			$stmt = static::$db->prepare($sql);
 			$stmt->execute($conditions);
 		} else {
-			$stmt = static::$db->query($sql." ".$postsql);
+			$stmt = static::$db->query($sql);
 		}
 		return $stmt;
 	}
@@ -300,7 +331,17 @@ class PdoFish
 	 */
 	public static function count($data=[])
 	{
-		return (int) static::process($data)->rowCount();
+		$data['select'] = '1';
+		list($base_sql, $conditions) = static::build_select_sql($data, false);
+		$sql = "SELECT COUNT(*) AS pdo_fish_count FROM (".$base_sql.") AS pdo_fish_count_subquery";
+		static::$last_sql = $sql;
+		if(!empty($conditions)) {
+			$stmt = static::$db->prepare($sql);
+			$stmt->execute($conditions);
+		} else {
+			$stmt = static::$db->query($sql);
+		}
+		return (int) $stmt->fetchColumn();
 	}
 
 	/**
@@ -444,8 +485,11 @@ class PdoFish
 	 * @param  array $where array of columns and values
 	 * @param  integer $limit limit number of records
 	 */
-	public static function delete($where, $limit = NULL)
+	public static function delete_where($where, $limit = NULL)
 	{
+		if(!is_array($where) || empty($where)) {
+			return 0;
+		}
 		//collect the values from collection
 		$values = array_values($where);
 
@@ -461,8 +505,17 @@ class PdoFish
 		if (is_numeric($limit)) {
 			$limit = "LIMIT $limit";
 		}
-		$stmt = static::run("DELETE FROM `".static::get_table()."` WHERE $whereDetails", $values);
+		$sql = "DELETE FROM `".static::get_table()."` WHERE $whereDetails";
+		if (!empty($limit)) {
+			$sql .= " ".$limit;
+		}
+		$stmt = static::run($sql, $values);
 		return $stmt->rowCount();
+	}
+
+	public static function deleteWhere($where, $limit = NULL) // camel-case alias of delete_where
+	{
+		return self::delete_where($where, $limit);
 	}
 
 	/**
@@ -596,6 +649,42 @@ class PdoFish
 	}
 
 	/**
+	 * Assign arbitrary/computed data to a model instance
+	 *
+	 * @param string $key
+	 * @param mixed $val
+	 * @return object
+	 */
+	public function assign_attribute($key, $val)
+	{
+		$this->$key = $val;
+		return $this;
+	}
+
+	/**
+	 * Return all instance attributes as an array
+	 *
+	 * @return array
+	 */
+	public function attributes()
+	{
+		return (array) $this;
+	}
+
+	/**
+	 * Instance delete alias for active-record style calls
+	 *
+	 * @return object
+	 */
+	public function __call(string $name, array $args)
+	{
+		if('delete' === $name) {
+			return $this->deleteRow();
+		}
+		throw new BadMethodCallException('Undefined method '.get_called_class().'::'.$name.'()');
+	}
+
+	/**
 	 * dynamic callable
 	 *
 	 * @param  string $table table name
@@ -604,6 +693,9 @@ class PdoFish
 
 	public static function __callStatic ( string $name , array $args )
 	{
+		if ('delete' === $name) {
+			return static::delete_where($args[0] ?? [], $args[1] ?? NULL);
+		}
 		# one record
 		if (preg_match('/^find_by_(.+)/', $name, $matches)) {
 			$var_name = $matches[1];
