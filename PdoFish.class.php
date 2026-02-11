@@ -6,6 +6,28 @@
  * modeled after phpActiveRecord
  */
 
+/**
+ * DateTime subclass that casts to string automatically,
+ * matching php-activerecord's ActiveRecord\DateTime behaviour.
+ * Dates echo as "YYYY-MM-DD", datetimes as "YYYY-MM-DD HH:MM:SS".
+ */
+class PdoFishDateTime extends DateTime
+{
+	private bool $has_time;
+
+	public function __construct(string $value)
+	{
+		parent::__construct($value);
+		// If original value had a time component, preserve it
+		$this->has_time = (bool) preg_match('/\d{2}:\d{2}:\d{2}/', $value);
+	}
+
+	public function __toString(): string
+	{
+		return $this->format($this->has_time ? 'Y-m-d H:i:s' : 'Y-m-d');
+	}
+}
+
 class PdoFish
 {
 	// database connection
@@ -16,6 +38,8 @@ class PdoFish
 	static $tbl = null;
 	// primary key, defaults to 'id'
 	static $pk = 'id';
+	// cache of auto-detected PKs keyed by table name
+	static private $pk_cache = [];
 	// stores last SQL query 
 	static $last_sql = null;
 	// default return type, which defaults to object
@@ -30,6 +54,8 @@ class PdoFish
 	{
 		if(is_array($args)) {
 			foreach($args as $k=>$v) {
+				// Skip mangled private/protected keys from (array) casts
+				if(is_string($k) && isset($k[0]) && $k[0] === "\0") { continue; }
 				$this->$k = $v;
 			}
 		}
@@ -95,7 +121,46 @@ class PdoFish
 		if($fetch_mode != PDO::FETCH_OBJ) {
 			return $stmt->fetch($fetch_mode);
 		}
-		return $stmt->fetchObject(get_called_class());
+		$obj = $stmt->fetchObject(get_called_class());
+		if($obj) { static::hydrate($obj); }
+		return $obj;
+	}
+
+	/**
+	 * Cast date/datetime/timestamp string columns to DateTime objects,
+	 * mirroring php-activerecord behaviour.
+	 *
+	 * @param object $obj
+	 */
+	protected static function hydrate($obj)
+	{
+		// Regex matches ISO date strings: "YYYY-MM-DD" or "YYYY-MM-DD HH:MM:SS"
+		static $date_pattern = '/^\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?$/';
+		// Column name suffixes that are always dates
+		static $date_col_suffixes = ['date', 'time', 'at', 'on', 'stamp', 'pubdate', 'tstamp'];
+		foreach (get_object_vars($obj) as $key => $val) {
+			if (!is_string($val) || $val === '') { continue; }
+			// Check by column name suffix
+			$lower = strtolower($key);
+			$is_date_col = false;
+			foreach ($date_col_suffixes as $suffix) {
+				if ($lower === $suffix || substr($lower, -strlen($suffix)) === $suffix) {
+					$is_date_col = true;
+					break;
+				}
+			}
+			// Also check by value pattern regardless of column name
+			if (!$is_date_col && !preg_match($date_pattern, $val)) { continue; }
+			if ($is_date_col || preg_match($date_pattern, $val)) {
+				// Skip zero-dates — leave as string so templates can compare to '0000-00-00'
+				if(preg_match('/^0000-00-00/', $val)) { continue; }
+				try {
+					$obj->$key = new PdoFishDateTime($val);
+				} catch (Exception $e) {
+					// leave as string if unparseable
+				}
+			}
+		}
 	}
 
 	/**
@@ -123,13 +188,26 @@ class PdoFish
 	}
 
 	/**
-	 * Gets the primary key
+	 * Gets the primary key.
+	 * If $primary_key is not declared on the subclass, auto-detects from DB schema
+	 * (result is cached per table to avoid repeated SHOW KEYS queries).
 	 *
-	 * @return current primary key, defaults to 'id'
+	 * @return string primary key column name
 	 */
 	public static function get_pk()
 	{
-		return static::$primary_key ?? static::$pk;
+		if(isset(static::$primary_key)) { return static::$primary_key; }
+		$table = static::get_table();
+		if(!$table) { return 'id'; }
+		if(isset(self::$pk_cache[$table])) { return self::$pk_cache[$table]; }
+		try {
+			$stmt = self::$db->query("SHOW KEYS FROM `{$table}` WHERE Key_name='PRIMARY'");
+			$row = $stmt->fetch(PDO::FETCH_OBJ);
+			self::$pk_cache[$table] = $row ? $row->Column_name : 'id';
+		} catch (Exception $e) {
+			self::$pk_cache[$table] = 'id';
+		}
+		return self::$pk_cache[$table];
 	}
 
 	/**
@@ -224,6 +302,11 @@ class PdoFish
 			$fetch_mode = static::get_fetch_mode();
 		}
 		$stmt = static::process($data);
+		if($fetch_mode == PDO::FETCH_OBJ) {
+			$rows = $stmt->fetchAll(PDO::FETCH_CLASS, get_called_class());
+			foreach($rows as $row) { static::hydrate($row); }
+			return $rows;
+		}
 		return $stmt->fetchAll($fetch_mode);
 	}
 
@@ -240,10 +323,24 @@ class PdoFish
 		return array_pop($all); 
 	}
 
+	/**
+	 * Find a single record by raw SQL.
+	 */
 	public static function find_by_sql($sql, $args=NULL, $fetch_mode=NULL)
 	{
 		$stmt = static::run($sql,$args);
 		return static::return_data($stmt,$fetch_mode);
+	}
+
+	/**
+	 * Find a single record by raw SQL.
+	 */
+	public static function find_one_by_sql($sql, $args=NULL, $fetch_mode=NULL)
+	{
+		$stmt = static::run($sql, $args);
+		$obj = $stmt->fetchObject(get_called_class());
+		if($obj) { static::hydrate($obj); }
+		return $obj;
 	}
 	
 	public static function connection() : ?object 
@@ -265,6 +362,11 @@ class PdoFish
 			$fetch_mode = static::get_fetch_mode();
 		}
 		$stmt = static::run($sql,$args);
+		if($fetch_mode == PDO::FETCH_OBJ) {
+			$rows = $stmt->fetchAll(PDO::FETCH_CLASS, get_called_class());
+			foreach($rows as $row) { static::hydrate($row); }
+			return $rows;
+		}
 		return $stmt->fetchAll($fetch_mode);
 	}
 
@@ -310,16 +412,21 @@ class PdoFish
 	 * @param  object $fetch_mode 	set return mode, e.g. PDO::FETCH_OBJ or PDO::FETCH_ASSOC
 	 * @return object/array			returns single record
 	 */
-	public static function find($id, $fetch_mode = NULL)
+	public static function find($id, $data = NULL)
 	{
-		if('all' == strtolower($id)) { return static::all($fetch_mode); }
-		if('first' == strtolower($id)) { return static::first($fetch_mode); }
-		if(is_null($fetch_mode)) { $fetch_mode=static::$fetch_mode; }
-		$field = static::$primary_key ?? 'id'; 
+		// AR-style string: find('all', $options) / find('first', $options)
+		if(is_string($id) && 'all' == strtolower($id)) { return static::all(is_array($data) ? $data : []); }
+		if(is_string($id) && 'first' == strtolower($id)) { return static::first(is_array($data) ? $data : []); }
+		if(is_string($id) && 'last' == strtolower($id)) { return static::last(is_array($data) ? $data : []); }
+		// Backward compatibility: second arg can be fetch mode or AR options
+		$fetch_mode = is_int($data) ? $data : static::$fetch_mode;
+		$field = static::get_pk();
 		if($fetch_mode != PDO::FETCH_OBJ) {
 			return static::run("SELECT * FROM `".static::get_table()."` WHERE ".$field." = ?", [$id])->fetch($fetch_mode);
 		}
-		return static::run("SELECT * FROM `".static::get_table()."` WHERE ".$field." = ?", [$id])->fetchObject(get_called_class());
+		$obj = static::run("SELECT * FROM `".static::get_table()."` WHERE ".$field." = ?", [$id])->fetchObject(get_called_class());
+		if($obj) { static::hydrate($obj); }
+		return $obj;
 	}
 
 	/**
@@ -406,7 +513,7 @@ class PdoFish
 		}
 		$fieldDetails = rtrim($fieldDetails, ',');
 
-		$stmt = static::run("UPDATE `".static::get_table()."` SET ".$fieldDetails." WHERE id=?", $values);
+		$stmt = static::run("UPDATE `".static::get_table()."` SET ".$fieldDetails." WHERE ".static::get_pk()."=?", $values);
 		return $stmt->rowCount();
 	}
 
@@ -472,8 +579,9 @@ class PdoFish
 	 */
 	public function deleteRow()
 	{
-		if(isset($this->id)) {
-			self::delete_by_id($this->id);
+		$pk = static::get_pk();
+		if(isset($this->$pk)) {
+			self::delete_by_pk($this->$pk);
 			return $this;
 		}
 		return (object) $this;
@@ -623,27 +731,26 @@ class PdoFish
 	public function save($debug=NULL)
 	{
 		if(1 == $debug) { var_dump($this); return; }
-		// next lines, updating a record with a PK that isn't ID
-		if(isset(static::$primary_key)) { 
-			$data = (array) $this;
-			if(!is_array($data)) { return false; }
-			$pk = static::$primary_key; 
-			if(isset($data[$pk])) { 
-				$pk_val = $data[$pk];
-				unset($data[$pk]);
-				self::update_by_pk($data,$pk_val);
-				return (object) $data;
-			}
-		} 
-		$data = (array) $this;
+		$raw = (array) $this;
+		$data = [];
+		foreach($raw as $k => $v) {
+			if(is_string($k) && isset($k[0]) && $k[0] === "\0") { continue; }
+			$data[$k] = $v;
+		}
 		if(!is_array($data)) { return false; }
-		// next lines, updating a record with a PK of ID
-		if($data['id']) {
-			unset($data['id']);
-			self::update_by_id($data,$this->id);
+		$pk = static::get_pk();
+		// Cast any DateTime objects back to strings for storage
+		foreach($data as $k => $v) {
+			if($v instanceof DateTime) { $data[$k] = $v->format('Y-m-d H:i:s'); }
+		}
+		if(isset($data[$pk]) && $data[$pk] !== '' && $data[$pk] !== null) {
+			$pk_val = $data[$pk];
+			unset($data[$pk]);
+			self::update_by_pk($data, $pk_val);
 			return (object) $data;
-		} 
-		// otherwise, insert as new record
+		}
+		// no PK value — insert as new record
+		if(isset($data[$pk])) { unset($data[$pk]); }
 		static::insert($data);
 		return (object) $data;
 	}
@@ -662,13 +769,19 @@ class PdoFish
 	}
 
 	/**
-	 * Return all instance attributes as an array
+	 * Return all instance attributes as an array, excluding internal/mangled keys.
 	 *
 	 * @return array
 	 */
 	public function attributes()
 	{
-		return (array) $this;
+		$raw = (array) $this;
+		$out = [];
+		foreach($raw as $k => $v) {
+			if(is_string($k) && isset($k[0]) && $k[0] === "\0") { continue; }
+			$out[$k] = $v;
+		}
+		return $out;
 	}
 
 	/**
@@ -696,20 +809,29 @@ class PdoFish
 		if ('delete' === $name) {
 			return static::delete_where($args[0] ?? [], $args[1] ?? NULL);
 		}
-		# one record
+		# one record: find_by_col or find_by_col1_and_col2_and_...
 		if (preg_match('/^find_by_(.+)/', $name, $matches)) {
-			$var_name = $matches[1];
-			$sql = "SELECT * FROM `".static::get_table()."` WHERE ".$var_name."=?";
-			$stmt = static::$db->prepare($sql);
-			$stmt->execute([ $args[0] ]);
-			return static::return_data($stmt,$fetch_mode);
+			$columns = explode('_and_', $matches[1]);
+			$where   = implode('=? AND ', $columns) . '=?';
+			$sql     = "SELECT * FROM `".static::get_table()."` WHERE ".$where;
+			$stmt    = static::$db->prepare($sql);
+			$stmt->execute(array_slice($args, 0, count($columns)));
+			$obj = $stmt->fetchObject(get_called_class());
+			if($obj) { static::hydrate($obj); }
+			return $obj;
 		}
-		# multiple records
+		# multiple records: find_all_by_col or find_all_by_col1_and_col2_and_...
 		if (preg_match('/^find_all_by_(.+)/', $name, $matches)) {
-			$var_name = $matches[1];
-			$sql = "SELECT * FROM `".static::get_table()."` WHERE ".$var_name."=?";
-			$stmt = static::$db->prepare($sql);
-			$stmt->execute([ $args[0] ]);
+			$columns = explode('_and_', $matches[1]);
+			$where   = implode('=? AND ', $columns) . '=?';
+			$sql     = "SELECT * FROM `".static::get_table()."` WHERE ".$where;
+			$stmt    = static::$db->prepare($sql);
+			$stmt->execute(array_slice($args, 0, count($columns)));
+			if(static::get_fetch_mode() == PDO::FETCH_OBJ) {
+				$rows = $stmt->fetchAll(PDO::FETCH_CLASS, get_called_class());
+				foreach($rows as $row) { static::hydrate($row); }
+				return $rows;
+			}
 			return $stmt->fetchAll(static::get_fetch_mode());
 		}
 	}
