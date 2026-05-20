@@ -10,6 +10,6 @@ $PdoFish_options = [
 	'charset' => 'utf8',            // optional, defaults to utf8
 	'host' => "localhost",          // optional, defaults to localhost
 	'port' => '3306',               // optional, defaults to 3306
-	'model_path'=>'/pathtomodels/',	// optional, defaults to null 
+	'model_path'=>'/path/to/models/',	// optional, defaults to null 
 ];
 

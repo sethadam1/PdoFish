@@ -1,7 +1,18 @@
 {
 	"name": "sethadam1/pdofish",
 	"description": "An Active Record style wrapper for PHP and PDO",
+	"type": "library",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Adam Scheinberg",
+			"homepage": "https://github.com/sethdam1/"
+		}
+	],
 	"require": {
-		"php": ">=7.2"
+		"php": ">=8.0"
+	},
+	"autoload": {
+		"classmap": ["PdoFish.class.php"]
 	}
 }

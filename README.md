@@ -12,12 +12,13 @@ The goal of this project was to recreate the _static_ methods that work with tab
 ```Model::find()``` - find by a column called "id"  
 ```Model::all()``` - return all rows matching a query   
 ```Model::first()``` - returns the first row matching a query  
-```Model::last()``` - returns the first row matching a query  
+```Model::last()``` - returns the last row matching a query  
 ```Model::find_by_sql()``` - returns a single row matching a query  
 ```Model::find_all_by_sql()``` - returns all rows matching a query  
 ```Model::lastInsertId()``` - returns last insert id  
 ```Model::count()``` - return matching row count  
-```Model::save()``` - insert/create/save data  \
+```Model::save()``` - insert/create/save data  
+```Model::create()``` - alias for `insert()`  
 ```Model::insert()``` - insert record  
 ```Model::update()``` - update field(s)  
 ```Model::delete()```  - delete a row  
@@ -72,6 +73,7 @@ composer require sethadam1/pdofish
 
 Manually: 
 - Upload the files to your web server.  
+- Copy ```credentials.example.php``` to ```credentials.php``` and fill in your database details.  
 - Add any models in your ```models/``` directory (or any other directory), being sure to use the example to extend the ```PdoFish``` class and set the ```$table``` variable and ```id```, if your primary key is not already called ```id```. 
 - Include Pdofish/PdoFish.php in your code and you should be ready to go. 
 
@@ -174,26 +176,26 @@ $x = ModelName::all([
 print_r($x);
 ```
 
-These PHPAR styles are supported, but not reccommended: 
+These PHPAR styles are supported, but not recommended: 
 ```php  
 // print a row where name is "John"   
-$x = ModelName::find('first' array('conditions'=>array('name=?','John')));
+$x = ModelName::find('first', array('conditions'=>array('name=?','John')));
 print_r($x); 
 ```
 
 ```php  
 // print all rows where user_id is greater than 1   
-$x = ModelName::find('all' array('conditions'=>array('id>?','1')));
+$x = ModelName::find('all', array('conditions'=>array('id>?','1')));
 print_r($x); 
 ```
 
 #### Update  
 ```php    
 // updates column "firstname" to "Boris" where id = 5
-ModeName::update(['firstname'=>'Boris'], ['id'=>5]); 
+ModelName::update(['firstname'=>'Boris'], ['id'=>5]); 
 
 // updates columns "firstname" to "June", "lastname" to "Basoon" where id = 5
-ModeName::update(['firstname'=>'June', 'lastname'=>'Basoon'], ['id'=>5]); 
+ModelName::update(['firstname'=>'June', 'lastname'=>'Basoon'], ['id'=>5]); 
 ```   
   
 You can use the save() method on an existing model object, just like you can in Active Record, provided it has a property called "id" that matches a unique column in the table OR has a ```$primary_key``` attribute defined in the model.  
@@ -225,16 +227,16 @@ class ModelName extends PdoFish {
 #### Delete  
 ```php    
 // delete rows where column "firstname" is equal to "Boris"  
-ModeName::delete(['firstname'=>'Boris']);   
+ModelName::delete(['firstname'=>'Boris']);   
   
 // delete row where column "id" is equal to "5"  
-ModeName::delete_by_id(5);   
+ModelName::delete_by_id(5);   
   
 // delete rows where column "user_id" is equal to 1, 2, or 3  
-ModeName::deleteMany(['user_id', '1,2,3']);   
+ModelName::deleteMany('user_id', '1,2,3');   
 
 // delete via criteria, e.g. rows where column "user_id" is equal to 1, 2, or 3  
-ModeName::delete_all([ 'conditions'=>['user_id=? OR user_id=? OR user_id=?',1,2,3] ]);   
+ModelName::delete_all([ 'conditions'=>['user_id=? OR user_id=? OR user_id=?',1,2,3] ]);   
    
 // this will truncate an entire table. You MUST call this via the PdoFish class, and not a child class  
 PdoFish::truncate('tableName');  
