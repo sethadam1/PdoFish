@@ -258,4 +258,7 @@ The following arguments are supported in the PdoFish queries:
 ```limit``` - a positive integer greater than 0  
 
 ## Credits
-Some of this code has roots in the [David Carr](https://twitter.com/dcblogdev)'s [PDOWrapper](https://dcblog.dev/docs/pdo-wrapper) project. 
+Some of this code has roots in the [David Carr](https://twitter.com/dcblogdev)'s [PDOWrapper](https://dcblog.dev/docs/pdo-wrapper) project.
+
+## License
+PdoFish is open-source software released under the [MIT License](LICENSE).
